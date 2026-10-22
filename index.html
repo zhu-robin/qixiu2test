@@ -2,638 +2,1037 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#2563eb">
+<meta name="description" content="汽车发动机、底盘、电气试题库在线练习：自动读取 Excel 题库，支持顺序/随机/错题练习、自动判分与错题导出。">
 <title>汽车发动机、底盘、电气试题库 · 在线测试</title>
 <style>
-:root{--bg:#f5f7fb;--card:#fff;--primary:#2563eb;--text:#1f2937;--muted:#6b7280;--ok:#16a34a;--bad:#dc2626;--border:#e5e7eb}
-*{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,"Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
-header{background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;padding:18px 20px}
-header h1{margin:0;font-size:20px}
-header p{margin:6px 0 0;opacity:.9;font-size:13px;line-height:1.6}
-main{max-width:1100px;margin:0 auto;padding:16px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 6px 20px rgba(0,0,0,.04);margin-bottom:16px}
-.btn{border:1px solid var(--border);background:#fff;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:14px;color:var(--text)}
-.btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.stats{display:flex;flex-wrap:wrap;gap:12px;color:var(--muted);font-size:14px}
-.option{display:block;padding:12px 14px;border:1px solid var(--border);border-radius:12px;margin:8px 0;cursor:pointer;transition:.15s;line-height:1.6}
-.option:hover{border-color:#93c5fd;background:#eff6ff}
-.option.selected{border-color:var(--primary);background:#dbeafe}
-.option.correct{border-color:var(--ok);background:#dcfce7}
-.option.wrong{border-color:var(--bad);background:#fee2e2}
-.option input{margin-right:10px}
-.question-title{font-size:17px;line-height:1.8;margin:8px 0 16px;white-space:pre-wrap;overflow-wrap:anywhere}
-.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;margin-right:6px}
-.tag.multi{background:#fef3c7;color:#92400e}
-.tag.judge{background:#dcfce7;color:#166534}
-.answer-card{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:8px;max-height:280px;overflow:auto;padding:4px}
-.answer-card button{height:40px;border-radius:10px;border:1px solid var(--border);background:#fff;cursor:pointer}
-.answer-card button.answered{background:#dbeafe;border-color:#93c5fd}
-.answer-card button.current{outline:2px solid var(--primary)}
-.answer-card button.correct{background:#dcfce7;border-color:#86efac}
-.answer-card button.wrong{background:#fee2e2;border-color:#fca5a5}
-.result{font-size:15px;line-height:1.8}
-.hidden{display:none!important}
-.small{color:var(--muted);font-size:13px;line-height:1.6}
-.flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.spacer{flex:1}
-.progress{height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden}
-.progress>div{height:100%;background:var(--primary);width:0;transition:width .15s}
-.status{padding:12px 14px;border-radius:10px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;margin-top:12px}
-.status.error{background:#fef2f2;border-color:#fecaca;color:#991b1b}
-select.btn{max-width:100%}
-footer{text-align:center;color:var(--muted);font-size:12px;padding:8px 0 24px}
-@media(max-width:600px){main{padding:10px}.card{padding:12px}.question-title{font-size:16px}.toolbar .btn{padding:8px 10px}}
+  :root{
+    --bg:#f5f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280; --border:#e5e7eb;
+    --primary:#2563eb; --primary-weak:#dbeafe; --ok:#16a34a; --ok-bg:#dcfce7;
+    --bad:#dc2626; --bad-bg:#fee2e2; --chip:#eef2ff; --chip-text:#3730a3;
+    --radius:14px; --shadow:0 6px 20px rgba(0,0,0,.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0b1220; --card:#111a2e; --text:#e5e7eb; --muted:#94a3b8; --border:#1f2a44;
+      --primary:#3b82f6; --primary-weak:#1c2f5c; --ok:#4ade80; --ok-bg:#11321f;
+      --bad:#f87171; --bad-bg:#3a1618; --chip:#1e2a4a; --chip-text:#c7d2fe;
+      --shadow:0 6px 20px rgba(0,0,0,.4);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
+  [hidden]{display:none!important}
+  header{background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;padding:18px 20px}
+  header h1{margin:0;font-size:20px;line-height:1.5}
+  header p{margin:6px 0 0;opacity:.9;font-size:13px;line-height:1.6}
+  main{max-width:1100px;margin:0 auto;padding:16px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:16px}
+  h2{font-size:15px;margin:0 0 10px}
+  h3{font-size:15px;margin:0 0 12px}
+  .btn{border:1px solid var(--border);background:var(--card);padding:8px 14px;border-radius:10px;cursor:pointer;font-size:14px;color:var(--text);min-height:38px}
+  .btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn:focus-visible, #answerCard button:focus-visible, .option:focus-within{outline:2px solid var(--primary);outline-offset:2px}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .spacer{flex:1}
+  .stats{display:flex;flex-wrap:wrap;gap:12px;color:var(--muted);font-size:14px;align-items:center}
+  .stats b{color:var(--text)}
+  .small{color:var(--muted);font-size:13px;line-height:1.6}
+  .question-title{font-size:17px;line-height:1.8;margin:8px 0 16px;white-space:pre-wrap;overflow-wrap:anywhere}
+  .tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;background:var(--chip);color:var(--chip-text);margin-right:6px}
+  .tag.multi{background:#fef3c7;color:#92400e}
+  .tag.judge{background:#dcfce7;color:#166534}
+  .option{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border:1px solid var(--border);border-radius:12px;margin:8px 0;cursor:pointer;transition:.15s;line-height:1.6;background:var(--card)}
+  .option:hover{border-color:#93c5fd;background:var(--primary-weak)}
+  .option.selected{border-color:var(--primary);background:var(--primary-weak)}
+  .option.correct{border-color:var(--ok);background:var(--ok-bg)}
+  .option.wrong{border-color:var(--bad);background:var(--bad-bg)}
+  .option input{margin:3px 0 0;flex:none;accent-color:var(--primary)}
+  .option .txt{flex:1;overflow-wrap:anywhere}
+  .option .mark{flex:none;font-weight:700;min-width:1.2em;text-align:right}
+  .option .mark.ok{color:var(--ok)}
+  .option .mark.bad{color:var(--bad)}
+  #answerCard{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:8px;max-height:300px;overflow:auto;padding:4px}
+  #answerCard button{height:40px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-size:13px}
+  #answerCard button.answered{background:var(--primary-weak);border-color:#93c5fd}
+  #answerCard button.current{outline:2px solid var(--primary);outline-offset:1px}
+  #answerCard button.correct{background:var(--ok-bg);border-color:var(--ok)}
+  #answerCard button.wrong{background:var(--bad-bg);border-color:var(--bad)}
+  .progress{height:8px;background:var(--border);border-radius:999px;overflow:hidden}
+  .progress>div{height:100%;width:0;background:var(--primary);transition:width .15s}
+  .status{padding:12px 14px;border-radius:10px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;margin-top:12px;line-height:1.7;overflow-wrap:anywhere}
+  .status.error{background:#fef2f2;border-color:#fecaca;color:#991b1b}
+  .verdict{font-weight:700}
+  .verdict.ok{color:var(--ok)}
+  .verdict.bad{color:var(--bad)}
+  #feedback{margin-top:12px;line-height:1.8;font-size:15px}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:8px 0 24px}
+  .dlg{border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--text);max-width:420px;width:calc(100% - 32px);padding:20px;box-shadow:var(--shadow)}
+  .dlg::backdrop{background:rgba(15,23,42,.45)}
+  @media (prefers-color-scheme: dark){
+    .tag.multi{background:#3f2d0c;color:#fcd34d}
+    .tag.judge{background:#0f3d2a;color:#86efac}
+    .status{background:#12203a;border-color:#1e3a8a;color:#bfdbfe}
+    .status.error{background:#3a1618;border-color:#7f1d1d;color:#fecaca}
+  }
+  @media (max-width:600px){
+    main{padding:10px}.card{padding:12px}.question-title{font-size:16px}
+    .toolbar .btn{padding:8px 10px}#answerCard{grid-template-columns:repeat(auto-fill,minmax(42px,1fr))}
+  }
 </style>
 </head>
 <body>
 <header>
   <h1>汽车发动机、底盘、电气试题库 · 在线测试</h1>
-  <p>自动读取 GitHub 仓库中的 Excel 题库，支持顺序练习、随机练习、错题复习、在线判分和导出错题。</p>
+  <p>自动读取仓库中的 Excel 题库，支持顺序练习、随机练习、错题复习、在线判分和导出错题。答题记录仅保存在本机浏览器。</p>
 </header>
 <main>
-  <div class="card">
+  <section class="card" aria-labelledby="bankTitle">
     <div class="flex">
-      <strong>题库状态</strong>
+      <h2 id="bankTitle" style="margin:0">题库状态</h2>
       <span class="spacer"></span>
-      <button class="btn" id="reloadBankBtn">重新加载题库</button>
+      <button class="btn" type="button" id="reloadBankBtn">重新加载题库</button>
     </div>
-    <div id="loadInfo" class="status">正在连接在线题库……</div>
-    <p class="small">答题记录只保存在当前浏览器的本机存储中，不会上传到服务器。更换浏览器或设备后，记录不会自动同步。</p>
-  </div>
+    <div id="loadInfo" class="status" role="status" aria-live="polite">正在连接在线题库……</div>
+    <p class="small">答题记录只保存在当前浏览器的 localStorage，不会上传服务器；更换浏览器或清理站点数据后不会保留。</p>
+  </section>
 
-  <div id="quizPanel" class="hidden">
-    <div class="card">
+  <div id="quizPanel" hidden>
+    <section class="card" aria-label="练习控制台">
       <div class="toolbar">
-        <button class="btn primary" id="startBtn">开始/重新开始</button>
+        <button class="btn primary" type="button" id="startBtn">开始 / 重新开始</button>
         <select id="modeSelect" class="btn" aria-label="练习模式">
           <option value="all">全部题顺序练习</option>
           <option value="random">全部题随机练习</option>
           <option value="wrong">只练错题</option>
           <option value="unanswered">只练未答题</option>
         </select>
-        <button class="btn" id="prevBtn">上一题</button>
-        <button class="btn" id="nextBtn">下一题</button>
-        <button class="btn" id="submitBtn">提交判分</button>
-        <button class="btn" id="resetBtn">清空答案</button>
-        <button class="btn" id="toggleCardBtn">答题卡</button>
-        <span class="spacer"></span>
-        <span id="progressText" class="small"></span>
+        <button class="btn" type="button" id="prevBtn">上一题</button>
+        <button class="btn" type="button" id="nextBtn">下一题</button>
+        <button class="btn" type="button" id="submitBtn">提交判分</button>
+        <button class="btn" type="button" id="resetBtn">清空答案</button>
+        <button class="btn" type="button" id="toggleCardBtn" aria-expanded="false" aria-controls="cardPanel">答题卡</button>
       </div>
-      <div class="progress" style="margin-top:12px"><div id="progressBar"></div></div>
+      <div class="progress" id="progressWrap" role="progressbar" aria-label="答题进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="margin-top:12px">
+        <div id="progressBar"></div>
+      </div>
       <div class="stats" style="margin-top:10px">
         <span>本次题数：<b id="totalCount">0</b></span>
         <span>已答：<b id="answeredCount">0</b></span>
         <span>正确：<b id="correctCount">0</b></span>
         <span>错误：<b id="wrongCount">0</b></span>
         <span>正确率：<b id="accuracy">0%</b></span>
+        <span class="spacer"></span>
+        <span class="small" id="progressText"></span>
       </div>
-    </div>
+    </section>
 
-    <div class="card" id="questionCard">
+    <section class="card" id="questionCard" aria-label="题目">
       <div class="flex">
         <span class="tag" id="qTypeTag">题型</span>
         <span class="tag" id="qIdTag">题号</span>
         <span class="small" id="qKnowledge"></span>
       </div>
       <div class="question-title" id="qTitle"></div>
-      <div id="optionsBox"></div>
+      <div id="optionsBox" role="radiogroup" aria-labelledby="qTitle"></div>
       <div class="flex" style="margin-top:16px">
-        <button class="btn" id="prevBtn2">上一题</button>
-        <button class="btn primary" id="nextBtn2">下一题</button>
+        <button class="btn" type="button" id="prevBtn2">上一题</button>
+        <button class="btn primary" type="button" id="nextBtn2">下一题</button>
         <span class="spacer"></span>
-        <span class="small">答案自动保存在本机</span>
+        <span class="small">答案自动保存在本机 · 键盘 ← → 翻页，1-6 / A-F 选项</span>
       </div>
-      <div id="feedback" class="result" style="margin-top:12px"></div>
-    </div>
+      <div id="feedback" aria-live="polite"></div>
+    </section>
 
-    <div class="card hidden" id="cardPanel">
-      <h3 style="margin-top:0">答题卡</h3>
-      <div class="answer-card" id="answerCard"></div>
-    </div>
+    <section class="card" id="cardPanel" hidden aria-label="答题卡">
+      <h3>答题卡</h3>
+      <div id="answerCard"></div>
+    </section>
 
-    <div class="card hidden" id="resultPanel">
-      <h3 style="margin-top:0">测试结果</h3>
-      <div id="resultBox" class="result"></div>
-      <div style="margin-top:12px" class="flex">
-        <button class="btn primary" id="reviewWrongBtn">查看错题</button>
-        <button class="btn" id="exportWrongBtn">导出错题 CSV</button>
+    <section class="card" id="resultPanel" hidden aria-label="测试结果">
+      <h3>测试结果</h3>
+      <div id="resultBox" class="small" style="font-size:15px;line-height:1.8" aria-live="polite"></div>
+      <div class="flex" style="margin-top:12px">
+        <button class="btn primary" type="button" id="reviewWrongBtn">查看错题</button>
+        <button class="btn" type="button" id="exportWrongBtn">导出错题 CSV</button>
       </div>
-    </div>
+    </section>
   </div>
 </main>
 <footer>汽车专业在线练习 · 本地保存答题记录</footer>
 
-<!-- 可选：如果 CDN 在校园网络中无法访问，可下载 xlsx.full.min.js 放在仓库根目录，
-     然后把下一行改为：<script src="./xlsx.full.min.js"></script> -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<dialog id="confirmDlg" class="dlg" aria-labelledby="confirmText">
+  <form method="dialog">
+    <p id="confirmText" style="margin:0 0 16px;line-height:1.7"></p>
+    <div class="flex" style="justify-content:flex-end">
+      <button class="btn" type="submit" value="cancel">取消</button>
+      <button class="btn primary" type="submit" value="ok">确定</button>
+    </div>
+  </form>
+</dialog>
+
+<noscript><p style="text-align:center;color:#dc2626">需要启用 JavaScript 才能使用在线练习。</p></noscript>
+
 <script>
-'use strict';
+(function () {
+  'use strict';
 
-const BANK_URL = './题库.xls';
-const STORAGE_KEY = 'autoQuizAnswers_v2';
-const $ = id => document.getElementById(id);
-const state = {
-  allQuestions: [],
-  questions: [],
-  answers: {},
-  current: 0,
-  submitted: false
-};
+  /* ========================= 配置 ========================= */
+  // 按顺序尝试，第一个能取到的就用它
+  const BANK_URLS = ['./题库.xls', './题库.xlsx'];
+  // 按顺序尝试：本地副本 → SheetJS 官方 CDN → jsDelivr 旧版兜底
+  const XLSX_SOURCES = [
+    './xlsx.full.min.js',
+    'https://cdn.sheetjs.com/xlsx-0.20.3/xlsx.full.min.js',
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'
+  ];
+  const STORAGE_KEY = 'autoQuizAnswers_v3';
+  const LEGACY_KEY = 'autoQuizAnswers_v2';
 
-function cellText(v) {
-  return String(v ?? '').replace(/<br\s*\/?>/gi, '\n').replace(/\s+$/,'').trim();
-}
+  const LETTER = i => String.fromCharCode(65 + i);
 
-function showLoadStatus(message, isError = false) {
-  const el = $('loadInfo');
-  el.textContent = message;
-  el.classList.toggle('error', isError);
-}
+  /* ========================= 状态 ========================= */
+  const state = {
+    all: [],          // 全部题目
+    questions: [],    // 当前练习的题目
+    answers: {},      // id -> 选项下标数组
+    keys: {},         // id -> 答案排序后字符串（判题缓存，避免反复排序）
+    current: 0,
+    submitted: false,
+    cardEls: [],      // 答题卡按钮
+    optionEls: []     // 当前题的选项 DOM
+  };
+  let legacyAnswers = null;   // v2 旧记录，用于迁移
+  let xlsxPromise = null;
 
-function saveAnswers() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      answers: state.answers,
-      submitted: state.submitted,
-      savedAt: new Date().toISOString()
-    }));
-  } catch (e) {
-    console.warn('本地保存失败：', e);
+  /* ========================= 小工具 ========================= */
+  const $ = id => document.getElementById(id);
+  const on = (id, fn) => { const el = $(id); if (el) el.addEventListener('click', fn); };
+
+  function cellText(v) {
+    return String(v == null ? '' : v)
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/\u00a0/g, ' ')
+      .trim();
   }
-}
-
-function loadSaved() {
-  try {
-    const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    state.answers = s.answers && typeof s.answers === 'object' ? s.answers : {};
-    state.submitted = !!s.submitted;
-  } catch (e) {
-    state.answers = {};
-    state.submitted = false;
+  function normKey(s) {
+    return String(s == null ? '' : s).replace(/\s+/g, '').toLowerCase();
   }
-}
-
-function parseRightAnswer(raw, itemType, options) {
-  let s = cellText(raw).replace(/<br\s*\/?>/gi, '').trim();
-  if (!s) return [];
-
-  const isJudge = itemType === 2 ||
-    (options.length === 2 && options[0] === '对' && options[1] === '错');
-
-  if (isJudge) {
-    const normalized = s.replace(/[（）()]/g, '').trim();
-    const tokens = normalized.split(/[|,，、\s]+/).filter(Boolean);
-    return tokens.map(x => {
-      if (['对','1','正确','√','T','true'].includes(x.toLowerCase())) return 0;
-      if (['错','2','错误','×','X','false'].includes(x.toLowerCase())) return 1;
-      return -1;
-    }).filter(n => n >= 0 && n < options.length);
+  function keyOf(ans) {
+    return [...ans].sort((a, b) => a - b).join(',');
+  }
+  function hashStr(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 0x01000193);
+    }
+    return (h >>> 0).toString(36);
+  }
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
   }
 
-  let nums;
-  // 多选答案若以“123”连续保存，拆成 1、2、3；单选数字仍按一个数字处理。
-  if (/^\d+$/.test(s) && s.length > 1 && (itemType === 1 || options.length >= Number(s[0]))) {
-    nums = s.split('').map(Number);
-  } else {
-    nums = s.split(/[|,，、\s]+/).filter(Boolean).map(x => {
-      const m = x.match(/[1-6]/);
-      return m ? Number(m[0]) : NaN;
+  /* ========================= 答案解析 ========================= */
+  const JUDGE_YES = /^(对|正确|√|✓|是|t|true|y|yes)$/i;
+  const JUDGE_NO  = /^(错|错误|×|✗|否|f|false|n|no)$/i;
+
+  // 判断题判定：题型=2，或两个选项正好是"对/错""正确/错误"（顺序不限）
+  function detectJudge(itemType, options) {
+    if (itemType === 2) return true;
+    if (options.length !== 2) return false;
+    const a = options[0].trim();
+    const b = options[1].trim();
+    return (JUDGE_YES.test(a) && JUDGE_NO.test(b)) || (JUDGE_NO.test(a) && JUDGE_YES.test(b));
+  }
+
+  // 返回答案对应的选项下标数组；支持 1/2/3、A/B/C、12、A,B、A|B、123 等写法
+  function parseRightAnswer(raw, isJudge, options) {
+    const s = cellText(raw).replace(/\s+/g, ' ').trim();
+    if (!s) return [];
+    const tokens = s.split(/[|,，、;；\/\s]+/).filter(Boolean);
+    if (!tokens.length) return [];
+
+    if (isJudge) {
+      const yesIdx = options.findIndex(o => JUDGE_YES.test(o.trim()));
+      const noIdx = options.findIndex(o => JUDGE_NO.test(o.trim()));
+      const out = [];
+      tokens.forEach(tok => {
+        const t = tok.replace(/[（）()]/g, '');
+        let idx = -1;
+        if (/^[12]$/.test(t)) idx = Number(t) - 1;
+        else if (JUDGE_YES.test(t)) idx = yesIdx >= 0 ? yesIdx : 0;
+        else if (JUDGE_NO.test(t)) idx = noIdx >= 0 ? noIdx : 1;
+        else if (/^[A-Fa-f]$/.test(t)) idx = t.toUpperCase().charCodeAt(0) - 65;
+        if (idx >= 0 && idx < options.length) out.push(idx);
+      });
+      return [...new Set(out)];
+    }
+
+    const out = [];
+    tokens.forEach(tok => {
+      const t = tok.replace(/[（）()【】\[\]]/g, '');
+      if (/^[A-Fa-f]+$/.test(t)) {
+        t.toUpperCase().split('').forEach(c => out.push(c.charCodeAt(0) - 65));
+      } else if (/^[1-6]+$/.test(t)) {
+        t.split('').forEach(c => out.push(Number(c) - 1));
+      } else if (/^\d+$/.test(t)) {
+        out.push(Number(t) - 1);
+      }
     });
+    return [...new Set(out.filter(n => Number.isInteger(n) && n >= 0 && n < options.length))];
   }
-  return [...new Set(nums.map(n => n - 1).filter(n => Number.isInteger(n) && n >= 0 && n < options.length))];
-}
 
-function findHeader(rows) {
-  const keys = ['itemtitle','题干','题目编号','code'];
-  for (let i = 0; i < Math.min(rows.length, 15); i++) {
-    const row = rows[i].map(cellText);
-    const lower = row.map(x => x.toLowerCase());
-    if (keys.some(k => lower.includes(k.toLowerCase()))) {
-      const map = {};
-      lower.forEach((v,j) => { if (v) map[v] = j; });
-      return { rowIndex: i, map };
+  /* ========================= 表格解析 ========================= */
+  const OPTION_ALIASES = [
+    ['option1', '选项1', '选项a', 'a选项'],
+    ['option2', '选项2', '选项b', 'b选项'],
+    ['option3', '选项3', '选项c', 'c选项'],
+    ['option4', '选项4', '选项d', 'd选项'],
+    ['option5', '选项5', '选项e', 'e选项'],
+    ['option6', '选项6', '选项f', 'f选项']
+  ];
+  const HEADER_KEYS = ['itemtitle', '题干', '题目内容', '题目编号', 'code', '题号', '题型'];
+
+  function col(map, names) {
+    for (const n of names) {
+      const k = normKey(n);
+      if (map.has(k)) return map.get(k);
     }
+    return -1;
   }
-  return null;
-}
-
-function getIndex(map, names) {
-  for (const n of names) {
-    if (map[n.toLowerCase()] !== undefined) return map[n.toLowerCase()];
-  }
-  return -1;
-}
-
-function valueAt(row, idx) {
-  return idx >= 0 ? row[idx] : '';
-}
-
-function parseWorkbook(wb) {
-  const all = [];
-
-  wb.SheetNames.forEach(sheetName => {
-    const ws = wb.Sheets[sheetName];
-    if (!ws) return;
-
-    const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', raw:false});
-    if (!rows || !rows.length) return;
-
-    const header = findHeader(rows);
-    let start = 0, map = null;
-    if (header) {
-      start = header.rowIndex + 1;
-      map = header.map;
+  function findTitleCol(map) {
+    const idx = col(map, ['itemtitle', '题干', '题目内容', '题目', '试题', '题目描述']);
+    if (idx >= 0) return idx;
+    for (const [k, v] of map) {
+      if (k.indexOf('题干') === 0 || k.indexOf('itemtitle') === 0) return v;
     }
+    return -1;
+  }
+  function findHeader(rows) {
+    const limit = Math.min(rows.length, 30);
+    for (let i = 0; i < limit; i++) {
+      const lower = (rows[i] || []).map(v => normKey(cellText(v)));
+      const hit = lower.some(v => HEADER_KEYS.indexOf(v) >= 0 || v.indexOf('题干') === 0);
+      if (hit) {
+        const map = new Map();
+        lower.forEach((v, j) => { if (v && !map.has(v)) map.set(v, j); });
+        return { rowIndex: i, map };
+      }
+    }
+    return null;
+  }
 
-    for (let r = start; r < rows.length; r++) {
-      const row = rows[r];
-      if (!row || !row.length) continue;
+  function parseWorkbook(wb) {
+    const all = [];
+    const seen = new Set();
+    const stats = { noTitle: 0, noOptions: 0, noAnswer: 0, duplicates: 0 };
 
-      let title = '', options = [], rightRaw = '', itemType = 0;
-      let code = '', ipcode = '', knowledge = '';
+    wb.SheetNames.forEach(sheetName => {
+      const ws = wb.Sheets[sheetName];
+      if (!ws) return;
 
-      if (map) {
-        const idx = names => getIndex(map, names);
-        code = cellText(valueAt(row, idx(['code','题目编号','题号'])));
-        ipcode = cellText(valueAt(row, idx(['ipcode','题库编号'])));
-        itemType = Number(cellText(valueAt(row, idx(['itemtype','题目类型','题型']))) ) || 0;
-        title = cellText(valueAt(row, idx(['itemtitle','题干','题目内容','题目'])));
-        knowledge = cellText(valueAt(row, idx(['knowledgepoints','知识点编号','知识点'])));
-        rightRaw = valueAt(row, idx(['rightanswer','正确答案','答案']));
-        const optionNames = [
-          ['option1','选项1','选项a','a选项'],
-          ['option2','选项2','选项b','b选项'],
-          ['option3','选项3','选项c','c选项'],
-          ['option4','选项4','选项d','d选项'],
-          ['option5','选项5','选项e','e选项'],
-          ['option6','选项6','选项f','f选项']
-        ];
-        options = optionNames.map(names => cellText(valueAt(row, idx(names)))).filter(Boolean);
-      } else {
-        // 兼容原题库的无表头格式：D列题型、F列题干、G列选项数、H-M列选项、N列答案、O列知识点。
-        title = cellText(row[5]);
-        itemType = Number(cellText(row[3])) || 0;
-        ipcode = cellText(row[1]);
-        options = [];
-        for (let j = 7; j <= 12; j++) {
-          const v = cellText(row[j]);
-          if (v) options.push(v);
-        }
-        rightRaw = row[13];
-        if (!cellText(rightRaw)) {
-          for (let j = row.length - 1; j >= 0; j--) {
-            const v = cellText(row[j]);
-            if (/^[1-6](?:[|,，、][1-6])*$/.test(v)) {
-              rightRaw = v;
-              break;
+      let rows;
+      try {
+        rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false });
+      } catch (e) {
+        console.warn('工作表读取失败：', sheetName, e);
+        return;
+      }
+      if (!rows || !rows.length) return;
+
+      const header = findHeader(rows);
+      const start = header ? header.rowIndex + 1 : 0;
+      const map = header ? header.map : null;
+      const titleCol = map ? findTitleCol(map) : -1;
+
+      for (let r = start; r < rows.length; r++) {
+        const row = rows[r] || [];
+        let title = '', options = [], rightRaw = '', itemType = 0;
+        let code = '', ipcode = '', knowledge = '';
+
+        if (map) {
+          code = cellText(row[col(map, ['code', '题目编号', '题号', '编号'])]);
+          ipcode = cellText(row[col(map, ['ipcode', '题库编号'])]);
+          itemType = Number(cellText(row[col(map, ['itemtype', '题目类型', '题型', '类型'])])) || 0;
+          knowledge = cellText(row[col(map, ['knowledgepoints', '知识点编号', '知识点', '考点'])]);
+          rightRaw = cellText(row[col(map, ['rightanswer', '正确答案', '答案', '标准答案'])]);
+          title = cellText(titleCol >= 0 ? row[titleCol] : '');
+
+          const optCols = OPTION_ALIASES.map(alias => col(map, alias));
+          if (optCols.some(i => i >= 0)) {
+            options = optCols.map(i => (i >= 0 ? cellText(row[i]) : ''));
+          } else {
+            // 表头用 A/B/C/D 单字母表示选项列的情况
+            options = ['a', 'b', 'c', 'd', 'e', 'f'].map(ch => {
+              const i = col(map, [ch]);
+              return i >= 0 ? cellText(row[i]) : '';
+            });
+          }
+        } else {
+          // 兼容无表头的老格式：D=题型、F=题干、H-M=选项、N=答案、O=知识点
+          title = cellText(row[5]);
+          itemType = Number(cellText(row[3])) || 0;
+          ipcode = cellText(row[1]);
+          for (let j = 7; j <= 12; j++) options.push(cellText(row[j]));
+          rightRaw = cellText(row[13]);
+          if (!rightRaw) {
+            for (let j = row.length - 1; j >= 0; j--) {
+              const v = cellText(row[j]);
+              if (/^[1-6](?:[|,，、][1-6])*$/.test(v)) { rightRaw = v; break; }
             }
           }
+          knowledge = cellText(row[14]);
         }
-        knowledge = cellText(row[14] || '');
+
+        // 去掉尾部空选项；中间空位保留，保证选项序号和答案序号始终对应
+        while (options.length && !options[options.length - 1]) options.pop();
+
+        if (!title) { stats.noTitle++; continue; }
+        if (/^(题干|itemtitle)$/i.test(title)) { stats.noTitle++; continue; }
+        if (options.length < 2) { stats.noOptions++; continue; }
+
+        const judge = detectJudge(itemType, options);
+        const right = parseRightAnswer(rightRaw, judge, options);
+        if (!right.length) { stats.noAnswer++; continue; }
+
+        // 用题干+选项的内容哈希做 id：Excel 增删行、改题号都不会让答题记录失效
+        const id = 'q' + hashStr(title + '\u0001' + options.join('\u0002'));
+        if (seen.has(id)) { stats.duplicates++; continue; }
+        seen.add(id);
+
+        all.push({
+          id,
+          code,
+          ipcode,
+          itemType,
+          isJudge: judge,
+          isMultiple: !judge && (itemType === 1 || right.length > 1),
+          title,
+          options,
+          right,
+          rightKey: keyOf(right),
+          knowledge,
+          sheet: sheetName,
+          loc: sheetName + ' 第 ' + (r + 1) + ' 行'
+        });
       }
+    });
 
-      if (!title || /^(题干|itemtitle)$/i.test(title)) continue;
-      if (!options.length && itemType === 2) options = ['对','错'];
-      if (options.length < 2) continue;
-
-      const right = parseRightAnswer(rightRaw, itemType, options);
-      if (!right.length) continue;
-
-      const isJudge = itemType === 2 ||
-        (options.length === 2 && options[0] === '对' && options[1] === '错');
-      const isMultiple = itemType === 1 || right.length > 1;
-
-      all.push({
-        id: code || `${sheetName}-${r+1}`,
-        code, ipcode, itemType, isJudge, isMultiple,
-        title, options, right, knowledge, sheet: sheetName
-      });
-    }
-  });
-
-  // 只有题目编号存在且重复时才去重；无编号时使用工作表+行号生成的 ID。
-  const seen = new Set();
-  return all.filter(q => {
-    if (seen.has(q.id)) return false;
-    seen.add(q.id);
-    return true;
-  });
-}
-
-function isAnswerCorrect(q, ans) {
-  if (!ans || !ans.length) return false;
-  const a = [...ans].sort((x,y) => x-y).join(',');
-  const b = [...q.right].sort((x,y) => x-y).join(',');
-  return a === b;
-}
-
-function shuffle(a) {
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+    return { questions: all, stats };
   }
-}
 
-function startQuiz() {
-  const mode = $('modeSelect').value;
-  let arr = state.allQuestions.slice();
+  function statsSummary(stats) {
+    const parts = [];
+    if (stats.noTitle) parts.push('无题干 ' + stats.noTitle + ' 行');
+    if (stats.noOptions) parts.push('选项不足 2 个 ' + stats.noOptions + ' 行');
+    if (stats.noAnswer) parts.push('答案无法识别 ' + stats.noAnswer + ' 行');
+    if (stats.duplicates) parts.push('重复题目 ' + stats.duplicates + ' 行');
+    return parts.length ? '；已跳过：' + parts.join('，') : '';
+  }
 
-  if (mode === 'random') shuffle(arr);
-  if (mode === 'wrong') {
-    arr = arr.filter(q => {
-      const a = state.answers[q.id];
-      return a && a.length && !isAnswerCorrect(q, a);
+  /* ========================= 本地存储 ========================= */
+  function saveAnswers() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        v: 3,
+        answers: state.answers,
+        savedAt: new Date().toISOString()
+      }));
+    } catch (e) {
+      console.warn('本地保存失败：', e);
+    }
+  }
+
+  function loadSaved() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+      const src = raw && raw.answers && typeof raw.answers === 'object' ? raw.answers : null;
+      if (src) {
+        Object.keys(src).forEach(id => {
+          const a = src[id];
+          if (Array.isArray(a) && a.length && a.every(n => Number.isInteger(n) && n >= 0)) {
+            state.answers[id] = [...new Set(a)].sort((x, y) => x - y);
+            state.keys[id] = keyOf(state.answers[id]);
+          }
+        });
+      }
+    } catch (e) {
+      state.answers = {};
+      state.keys = {};
+    }
+    try {
+      const old = JSON.parse(localStorage.getItem(LEGACY_KEY) || 'null');
+      legacyAnswers = old && old.answers && typeof old.answers === 'object' ? old.answers : null;
+    } catch (e) {
+      legacyAnswers = null;
+    }
+  }
+
+  // 把旧版（按题号存储）的答案迁移到新 id 上，避免升级后记录全丢
+  function migrateLegacy(questions) {
+    if (!legacyAnswers) return;
+    let migrated = 0;
+    questions.forEach(q => {
+      if (state.keys[q.id] !== undefined || !q.code) return;
+      const old = legacyAnswers[q.code];
+      if (!Array.isArray(old) || !old.length) return;
+      const ans = old.filter(n => Number.isInteger(n) && n >= 0 && n < q.options.length);
+      if (!ans.length) return;
+      state.answers[q.id] = [...new Set(ans)].sort((a, b) => a - b);
+      state.keys[q.id] = keyOf(state.answers[q.id]);
+      migrated++;
+    });
+    if (migrated) console.info('已从旧版本记录中恢复 ' + migrated + ' 道题的答案。');
+  }
+
+  function revalidateAnswers() {
+    const byId = new Map(state.all.map(q => [q.id, q]));
+    Object.keys(state.answers).forEach(id => {
+      const q = byId.get(id);
+      if (!q) return;                       // 题库里暂时没有这道题：保留，等它回来
+      const ans = state.answers[id].filter(n => n < q.options.length);
+      if (ans.length) {
+        state.answers[id] = ans;
+        state.keys[id] = keyOf(ans);
+      } else {
+        delete state.answers[id];
+        delete state.keys[id];
+      }
     });
   }
-  if (mode === 'unanswered') {
-    arr = arr.filter(q => !state.answers[q.id] || !state.answers[q.id].length);
+
+  /* ========================= 状态查询 ========================= */
+  function statusOf(q) {
+    const k = state.keys[q.id];
+    if (k === undefined) return 0;
+    return k === q.rightKey ? 1 : -1;
   }
 
-  if (!arr.length) {
-    alert(mode === 'wrong' ? '当前没有已答错题。' : '当前模式下没有题目。');
-    return;
+  /* ========================= 渲染 ========================= */
+  function syncNav() {
+    const len = state.questions.length;
+    const atStart = len === 0 || state.current <= 0;
+    const atEnd = len === 0 || state.current >= len - 1;
+    ['prevBtn', 'prevBtn2'].forEach(id => { const el = $(id); if (el) el.disabled = atStart; });
+    ['nextBtn', 'nextBtn2'].forEach(id => { const el = $(id); if (el) el.disabled = atEnd; });
   }
 
-  state.questions = arr;
-  state.current = 0;
-  state.submitted = false;
-  $('resultPanel').classList.add('hidden');
-  renderAll();
-}
+  function renderQuestion() {
+    const q = state.questions[state.current];
+    const titleEl = $('qTitle');
+    const box = $('optionsBox');
+    const fb = $('feedback');
 
-function renderAll() {
-  renderQuestion();
-  updateStats();
-  renderAnswerCard();
-  $('prevBtn').disabled = $('prevBtn2').disabled = state.current <= 0;
-  $('nextBtn').disabled = $('nextBtn2').disabled || state.current >= state.questions.length - 1;
-}
-
-function renderQuestion() {
-  const q = state.questions[state.current];
-  if (!q) {
-    $('qTitle').textContent = '当前没有可显示的题目。';
-    $('optionsBox').innerHTML = '';
-    $('feedback').textContent = '';
-    return;
-  }
-
-  $('qTypeTag').textContent = q.isJudge ? '判断题' : (q.isMultiple ? '多选题' : '单选题');
-  $('qTypeTag').className = 'tag ' + (q.isJudge ? 'judge' : q.isMultiple ? 'multi' : '');
-  $('qIdTag').textContent = q.code || q.id;
-  $('qKnowledge').textContent = q.knowledge ? '知识点：' + q.knowledge : '';
-  $('qTitle').textContent = q.title;
-
-  const ans = state.answers[q.id] || [];
-  const box = $('optionsBox');
-  box.innerHTML = '';
-
-  q.options.forEach((opt, i) => {
-    const label = document.createElement('label');
-    label.className = 'option';
-    if (ans.includes(i)) label.classList.add('selected');
-    if (state.submitted) {
-      if (q.right.includes(i)) label.classList.add('correct');
-      if (ans.includes(i) && !q.right.includes(i)) label.classList.add('wrong');
+    if (!q) {
+      titleEl.textContent = '当前没有可显示的题目，请先加载题库。';
+      box.innerHTML = '';
+      fb.textContent = '';
+      $('qTypeTag').textContent = '题型';
+      $('qTypeTag').className = 'tag';
+      $('qIdTag').textContent = '—';
+      $('qKnowledge').textContent = '';
+      state.optionEls = [];
+      return;
     }
 
-    const input = document.createElement('input');
-    input.type = q.isMultiple ? 'checkbox' : 'radio';
-    input.name = 'q_' + q.id;
-    input.value = i;
-    input.checked = ans.includes(i);
-    input.disabled = state.submitted;
-    input.onchange = () => {
-      if (state.submitted) return;
-      if (q.isMultiple) {
-        let cur = state.answers[q.id] || [];
-        if (input.checked) {
-          if (!cur.includes(i)) cur.push(i);
-        } else {
-          cur = cur.filter(x => x !== i);
-        }
-        state.answers[q.id] = cur.sort((a,b) => a-b);
-      } else {
-        state.answers[q.id] = [i];
-      }
-      saveAnswers();
-      renderAll();
-    };
+    $('qTypeTag').textContent = q.isJudge ? '判断题' : q.isMultiple ? '多选题' : '单选题';
+    $('qTypeTag').className = 'tag' + (q.isJudge ? ' judge' : q.isMultiple ? ' multi' : '');
+    $('qIdTag').textContent = q.code || '第 ' + (state.current + 1) + ' 题';
+    $('qKnowledge').textContent = q.knowledge ? '知识点：' + q.knowledge : '';
+    titleEl.textContent = q.title;
 
-    label.appendChild(input);
-    const span = document.createElement('span');
-    span.textContent = String.fromCharCode(65+i) + '．' + opt;
-    label.appendChild(span);
-    box.appendChild(label);
-  });
-
-  const fb = $('feedback');
-  if (state.submitted) {
-    const ok = isAnswerCorrect(q, ans);
-    const result = document.createElement('div');
-    result.style.color = ok ? 'var(--ok)' : 'var(--bad)';
-    result.style.fontWeight = '700';
-    result.textContent = ok ? '回答正确' : '回答错误';
-
-    const answer = document.createElement('div');
-    answer.textContent = '正确答案：' + q.right.map(i => String.fromCharCode(65+i)).join('、');
-    fb.replaceChildren(result, answer);
-  } else {
-    fb.textContent = '';
-  }
-}
-
-function updateStats() {
-  const total = state.questions.length;
-  const answered = state.questions.filter(q => state.answers[q.id] && state.answers[q.id].length).length;
-  let correct = 0, wrong = 0;
-
-  state.questions.forEach(q => {
-    const ans = state.answers[q.id];
-    if (ans && ans.length) {
-      if (isAnswerCorrect(q, ans)) correct++;
-      else wrong++;
-    }
-  });
-
-  $('totalCount').textContent = total;
-  $('answeredCount').textContent = answered;
-  $('correctCount').textContent = correct;
-  $('wrongCount').textContent = wrong;
-  $('accuracy').textContent = answered ? Math.round(correct / answered * 100) + '%' : '0%';
-  $('progressText').textContent = total ? `${state.current+1} / ${total}` : '0 / 0';
-  $('progressBar').style.width = total ? ((state.current+1) / total * 100) + '%' : '0%';
-}
-
-function renderAnswerCard() {
-  const box = $('answerCard');
-  box.innerHTML = '';
-
-  state.questions.forEach((q, idx) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.textContent = idx + 1;
-    btn.title = `第 ${idx+1} 题`;
-    const ans = state.answers[q.id];
-
-    if (ans && ans.length) btn.classList.add('answered');
-    if (idx === state.current) btn.classList.add('current');
-    if (state.submitted) {
-      if (isAnswerCorrect(q, ans)) btn.classList.add('correct');
-      else if (ans && ans.length) btn.classList.add('wrong');
-    }
-
-    btn.onclick = () => {
-      state.current = idx;
-      renderAll();
-    };
-    box.appendChild(btn);
-  });
-}
-
-function showResult() {
-  const total = state.questions.length;
-  const answered = state.questions.filter(q => state.answers[q.id] && state.answers[q.id].length).length;
-  const correct = state.questions.filter(q => isAnswerCorrect(q, state.answers[q.id])).length;
-  const wrong = answered - correct;
-  const unanswered = total - answered;
-
-  $('resultPanel').classList.remove('hidden');
-  $('resultBox').textContent =
-    `本次练习：共 ${total} 题，已答 ${answered} 题，未答 ${unanswered} 题，正确 ${correct} 题，已答错 ${wrong} 题，已答题正确率 ${answered ? Math.round(correct/answered*100) : 0}%。`;
-  $('resultPanel').scrollIntoView({behavior:'smooth', block:'nearest'});
-}
-
-function exportWrongCsv() {
-  const wrong = state.questions.filter(q => {
-    const ans = state.answers[q.id];
-    return ans && ans.length && !isAnswerCorrect(q, ans);
-  });
-
-  if (!wrong.length) {
-    alert('当前练习没有已答错题。');
-    return;
-  }
-
-  const rows = [['题号','题型','题干','你的答案','正确答案','知识点','来源工作表']];
-  wrong.forEach(q => {
     const ans = state.answers[q.id] || [];
-    rows.push([
-      q.code || q.id,
-      q.isJudge ? '判断题' : (q.isMultiple ? '多选题' : '单选题'),
-      q.title,
-      ans.map(i => String.fromCharCode(65+i)).join('、'),
-      q.right.map(i => String.fromCharCode(65+i)).join('、'),
-      q.knowledge || '',
-      q.sheet || ''
-    ]);
-  });
+    const multi = q.isMultiple;
+    box.setAttribute('role', multi ? 'group' : 'radiogroup');
+    box.innerHTML = '';
+    state.optionEls = [];
 
-  const csv = rows.map(r => r.map(x => `"${String(x ?? '').replace(/"/g,'""')}"`).join(',')).join('\r\n');
-  const blob = new Blob(['\ufeff' + csv], {type:'text/csv;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = '汽车专业错题.csv';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
+    q.options.forEach((opt, i) => {
+      const label = document.createElement('label');
+      label.className = 'option';
 
-async function loadRemoteQuestionBank() {
-  const btn = $('reloadBankBtn');
-  btn.disabled = true;
-  showLoadStatus('正在加载在线题库……');
+      const input = document.createElement('input');
+      input.type = multi ? 'checkbox' : 'radio';
+      input.name = 'answer';
+      input.value = String(i);
+      input.checked = ans.indexOf(i) >= 0;
+      input.disabled = state.submitted;
+      input.addEventListener('change', () => onPick(q, i, input.checked));
 
-  try {
-    if (typeof XLSX === 'undefined') {
-      throw new Error('Excel 解析库未加载。请检查网络，或按说明将 xlsx.full.min.js 放入仓库并改为本地引用。');
+      const txt = document.createElement('span');
+      txt.className = 'txt';
+      txt.textContent = LETTER(i) + '．' + opt;
+
+      const mark = document.createElement('span');
+      mark.className = 'mark';
+
+      label.append(input, txt, mark);
+      box.appendChild(label);
+      state.optionEls.push({ label, mark });
+    });
+
+    paintOptions(q, ans);
+    paintFeedback(q);
+  }
+
+  function paintOptions(q, ans) {
+    state.optionEls.forEach((item, i) => {
+      const sel = ans.indexOf(i) >= 0;
+      const right = q.right.indexOf(i) >= 0;
+      item.label.classList.toggle('selected', sel);
+      item.label.classList.remove('correct', 'wrong');
+      item.mark.className = 'mark';
+      item.mark.textContent = '';
+      if (!state.submitted) return;
+      if (right) {
+        item.label.classList.add('correct');
+        item.mark.classList.add('ok');
+        item.mark.textContent = '✓';
+      } else if (sel) {
+        item.label.classList.add('wrong');
+        item.mark.classList.add('bad');
+        item.mark.textContent = '✗';
+      }
+    });
+  }
+
+  function paintFeedback(q) {
+    const fb = $('feedback');
+    fb.innerHTML = '';
+    if (!state.submitted) return;
+    const st = statusOf(q);
+    const line = document.createElement('div');
+    line.className = 'verdict ' + (st === 1 ? 'ok' : st === -1 ? 'bad' : '');
+    line.textContent = st === 1 ? '回答正确' : st === -1 ? '回答错误' : '未作答';
+    const key = document.createElement('div');
+    key.className = 'small';
+    key.textContent = '正确答案：' + q.right.map(LETTER).join('、');
+    fb.append(line, key);
+  }
+
+  function updateStats() {
+    const list = state.questions;
+    const total = list.length;
+    let answered = 0, correct = 0, wrong = 0;
+    for (let i = 0; i < total; i++) {
+      const st = statusOf(list[i]);
+      if (st === 0) continue;
+      answered++;
+      if (st === 1) correct++; else wrong++;
+    }
+    $('totalCount').textContent = total;
+    $('answeredCount').textContent = answered;
+    $('correctCount').textContent = correct;
+    $('wrongCount').textContent = wrong;
+    $('accuracy').textContent = answered ? Math.round(correct / answered * 100) + '%' : '0%';
+    $('progressText').textContent = total ? '当前第 ' + (state.current + 1) + ' 题 / 共 ' + total + ' 题' : '';
+    const pct = total ? Math.round(answered / total * 100) : 0;
+    $('progressBar').style.width = pct + '%';
+    $('progressWrap').setAttribute('aria-valuenow', String(pct));
+    $('progressWrap').setAttribute('aria-valuetext', '已答 ' + answered + ' / ' + total + ' 题');
+  }
+
+  function paintCardButton(idx) {
+    const btn = state.cardEls[idx];
+    const q = state.questions[idx];
+    if (!btn || !q) return;
+    const st = statusOf(q);
+    const cls = [];
+    if (st !== 0) cls.push('answered');
+    if (idx === state.current) cls.push('current');
+    if (state.submitted && st === 1) cls.push('correct');
+    if (state.submitted && st === -1) cls.push('wrong');
+    btn.className = cls.join(' ');
+    if (idx === state.current) btn.setAttribute('aria-current', 'true');
+    else btn.removeAttribute('aria-current');
+  }
+
+  function buildAnswerCard() {
+    const box = $('answerCard');
+    box.innerHTML = '';
+    state.cardEls = [];
+    const frag = document.createDocumentFragment();
+    state.questions.forEach((q, idx) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = String(idx + 1);
+      btn.title = '第 ' + (idx + 1) + ' 题';
+      btn.addEventListener('click', () => goTo(idx));
+      frag.appendChild(btn);
+      state.cardEls.push(btn);
+    });
+    box.appendChild(frag);
+  }
+
+  function paintCardAll() {
+    if (state.cardEls.length !== state.questions.length) buildAnswerCard();
+    for (let i = 0; i < state.cardEls.length; i++) paintCardButton(i);
+  }
+
+  function updateAll() {
+    renderQuestion();
+    updateStats();
+    syncNav();
+    paintCardAll();
+  }
+
+  /* ========================= 交互 ========================= */
+  function goTo(idx) {
+    const len = state.questions.length;
+    if (!len) return;
+    const old = state.current;
+    const next = Math.min(Math.max(idx, 0), len - 1);
+    if (next === old) return;
+    state.current = next;
+    renderQuestion();
+    updateStats();
+    syncNav();
+    paintCardButton(old);
+    paintCardButton(next);
+  }
+
+  function onPick(q, i, checked) {
+    if (state.submitted) return;
+    let ans = (state.answers[q.id] || []).slice();
+    if (q.isMultiple) {
+      if (checked) { if (ans.indexOf(i) < 0) ans.push(i); }
+      else ans = ans.filter(x => x !== i);
+      ans.sort((a, b) => a - b);
+    } else {
+      ans = [i];
+    }
+    if (ans.length) {
+      state.answers[q.id] = ans;
+      state.keys[q.id] = keyOf(ans);
+    } else {
+      delete state.answers[q.id];
+      delete state.keys[q.id];
+    }
+    saveAnswers();
+    paintOptions(q, state.answers[q.id] || []);
+    updateStats();
+    paintCardButton(state.current);
+  }
+
+  function startQuiz() {
+    if (!state.all.length) {
+      setStatus('题库还没有加载成功，请先点右上角“重新加载题库”。', true);
+      return;
+    }
+    const mode = $('modeSelect').value;
+    let arr = state.all.slice();
+
+    if (mode === 'random') shuffle(arr);
+    else if (mode === 'wrong') arr = arr.filter(q => statusOf(q) === -1);
+    else if (mode === 'unanswered') arr = arr.filter(q => statusOf(q) === 0);
+
+    if (!arr.length) {
+      setStatus(mode === 'wrong' ? '目前没有已答错的题目，先完整练一遍再来复习吧。' : '当前模式下没有题目。', false);
+      return;
     }
 
-    // 时间参数用于减少浏览器/CDN缓存旧题库的情况。
-    const response = await fetch(`${BANK_URL}?v=${Date.now()}`, {cache:'no-store'});
-    if (!response.ok) {
-      throw new Error(`无法读取 ${BANK_URL}（HTTP ${response.status}）。请检查文件名、大小写及仓库路径。`);
-    }
-
-    const buffer = await response.arrayBuffer();
-    const workbook = XLSX.read(buffer, {type:'array'});
-    const questions = parseWorkbook(workbook);
-
-    if (!questions.length) {
-      throw new Error('文件已下载，但没有解析到有效题目。请检查题库表头、选项列和正确答案格式。');
-    }
-
-    state.allQuestions = questions;
-    // 不清空本机已有答案；题库新增或删题时，只保留当前题库中仍存在的题目答案。
-    const validIds = new Set(questions.map(q => q.id));
-    state.answers = Object.fromEntries(
-      Object.entries(state.answers).filter(([id, ans]) => validIds.has(id) && Array.isArray(ans))
-    );
-    state.questions = questions.slice();
+    state.questions = arr;
     state.current = 0;
     state.submitted = false;
-    $('quizPanel').classList.remove('hidden');
-    $('resultPanel').classList.add('hidden');
-    $('cardPanel').classList.add('hidden');
-    saveAnswers();
-
-    showLoadStatus(`题库加载成功：共 ${questions.length} 道有效题目；工作表：${workbook.SheetNames.join('、')}`);
-    renderAll();
-  } catch (err) {
-    console.error(err);
-    showLoadStatus('题库加载失败：' + err.message, true);
-  } finally {
-    btn.disabled = false;
+    state.cardEls = [];
+    $('resultPanel').hidden = true;
+    $('cardPanel').hidden = true;
+    updateCardToggle();
+    buildAnswerCard();
+    updateAll();
   }
-}
 
-// 控件事件
-$('reloadBankBtn').onclick = loadRemoteQuestionBank;
-$('startBtn').onclick = startQuiz;
+  function submitQuiz() {
+    if (!state.questions.length) return;
+    state.submitted = true;
+    renderQuestion();
+    paintCardAll();
+    showResult();
+  }
 
-$('prevBtn').onclick = $('prevBtn2').onclick = () => {
-  if (state.current > 0) {
-    state.current--;
-    renderAll();
+  function showResult() {
+    const total = state.questions.length;
+    let answered = 0, correct = 0;
+    state.questions.forEach(q => {
+      const st = statusOf(q);
+      if (st !== 0) answered++;
+      if (st === 1) correct++;
+    });
+    const wrong = answered - correct;
+    const score = total ? Math.round(correct / total * 100) : 0;
+    const acc = answered ? Math.round(correct / answered * 100) : 0;
+    $('resultBox').textContent =
+      '本次练习共 ' + total + ' 题：已答 ' + answered + ' 题（正确 ' + correct +
+      '，错误 ' + wrong + '），未答 ' + (total - answered) + ' 题。' +
+      '按全部题目计算得分率 ' + score + '%，按已答题计算正确率 ' + acc + '%。';
+    const panel = $('resultPanel');
+    panel.hidden = false;
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
-};
-$('nextBtn').onclick = $('nextBtn2').onclick = () => {
-  if (state.current < state.questions.length - 1) {
-    state.current++;
-    renderAll();
-  }
-};
-$('submitBtn').onclick = () => {
-  if (!state.questions.length) return;
-  state.submitted = true;
-  saveAnswers();
-  renderAll();
-  showResult();
-};
-$('resetBtn').onclick = () => {
-  if (confirm('确定清空本机保存的全部答题答案？此操作不可撤销。')) {
+
+  async function resetAnswers() {
+    const ok = await askConfirm('确定清空本机保存的全部答题记录？此操作不可撤销。');
+    if (!ok) return;
     state.answers = {};
+    state.keys = {};
     state.submitted = false;
+    legacyAnswers = null;
+    $('resultPanel').hidden = true;
     saveAnswers();
-    $('resultPanel').classList.add('hidden');
-    renderAll();
+    updateAll();
   }
-};
-$('toggleCardBtn').onclick = () => $('cardPanel').classList.toggle('hidden');
-$('reviewWrongBtn').onclick = () => {
-  $('modeSelect').value = 'wrong';
-  startQuiz();
-};
-$('exportWrongBtn').onclick = exportWrongCsv;
 
-loadSaved();
-loadRemoteQuestionBank();
+  function toggleCard() {
+    const panel = $('cardPanel');
+    panel.hidden = !panel.hidden;
+    updateCardToggle();
+    if (!panel.hidden) paintCardAll();
+  }
+
+  function updateCardToggle() {
+    const btn = $('toggleCardBtn');
+    const panel = $('cardPanel');
+    if (btn && panel) btn.setAttribute('aria-expanded', String(!panel.hidden));
+  }
+
+  function onKeyDown(e) {
+    const tag = ((e.target && e.target.tagName) || '').toLowerCase();
+    if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+    if (e.key === 'ArrowLeft') { goTo(state.current - 1); }
+    else if (e.key === 'ArrowRight') { goTo(state.current + 1); }
+    else if (!state.submitted && /^[1-6]$/.test(e.key)) {
+      pickByIndex(Number(e.key) - 1);
+    } else if (!state.submitted && /^[a-fA-F]$/.test(e.key)) {
+      pickByIndex(e.key.toUpperCase().charCodeAt(0) - 65);
+    } else if (e.key === 'Enter' && tag !== 'button' && !state.submitted) {
+      submitQuiz();
+    }
+  }
+
+  function pickByIndex(i) {
+    const q = state.questions[state.current];
+    if (!q || i < 0 || i >= q.options.length) return;
+    const cur = state.answers[q.id] || [];
+    if (q.isMultiple && cur.indexOf(i) >= 0) onPick(q, i, false);
+    else onPick(q, i, true);
+  }
+
+  /* ========================= 导出 ========================= */
+  function csvCell(v) {
+    let s = String(v == null ? '' : v);
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;   // 防 Excel 公式注入
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+
+  function exportWrongCsv() {
+    const wrong = state.questions.filter(q => statusOf(q) === -1);
+    if (!wrong.length) {
+      setStatus('当前练习没有已答错的题目，先做几道题再来导出吧。', true);
+      return;
+    }
+    const rows = [['题号', '题型', '题干', '你的答案', '正确答案', '知识点', '来源']];
+    wrong.forEach(q => {
+      rows.push([
+        q.code || q.loc,
+        q.isJudge ? '判断题' : q.isMultiple ? '多选题' : '单选题',
+        q.title,
+        (state.answers[q.id] || []).map(LETTER).join('、'),
+        q.right.map(LETTER).join('、'),
+        q.knowledge || '',
+        q.loc
+      ]);
+    });
+    const csv = rows.map(r => r.map(csvCell).join(',')).join('\r\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '汽车专业错题_' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  /* ========================= 对话框 ========================= */
+  function askConfirm(text) {
+    const dlg = $('confirmDlg');
+    if (!dlg || typeof dlg.showModal !== 'function') {
+      return Promise.resolve(window.confirm(text));
+    }
+    $('confirmText').textContent = text;
+    return new Promise(resolve => {
+      if (dlg.open) dlg.close('cancel');
+      dlg.returnValue = 'cancel';
+      const done = () => {
+        dlg.removeEventListener('close', done);
+        resolve(dlg.returnValue === 'ok');
+      };
+      dlg.addEventListener('close', done);
+      dlg.showModal();
+    });
+  }
+
+  /* ========================= 题库加载 ========================= */
+  function setStatus(msg, isError) {
+    const el = $('loadInfo');
+    el.textContent = msg;
+    el.classList.toggle('error', !!isError);
+  }
+
+  function loadScript(src, timeout) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.async = true;
+      const timer = setTimeout(() => { cleanup(); reject(new Error('加载超时')); }, timeout || 10000);
+      function cleanup() {
+        clearTimeout(timer);
+        s.onload = null;
+        s.onerror = null;
+        if (s.parentNode) s.parentNode.removeChild(s);
+      }
+      s.onload = () => { cleanup(); resolve(); };
+      s.onerror = () => { cleanup(); reject(new Error('加载失败')); };
+      document.head.appendChild(s);
+    });
+  }
+
+  function ensureXLSX() {
+    if (window.XLSX) return Promise.resolve();
+    if (xlsxPromise) return xlsxPromise;
+    xlsxPromise = (async () => {
+      for (const src of XLSX_SOURCES) {
+        try {
+          await loadScript(src);
+          if (window.XLSX) return;
+        } catch (e) {
+          console.warn('Excel 解析库加载失败，尝试下一个来源：', src, e);
+        }
+      }
+      throw new Error('Excel 解析库加载失败：请检查网络，或把 xlsx.full.min.js 放到仓库根目录后重试。');
+    })();
+    xlsxPromise.catch(() => { xlsxPromise = null; });
+    return xlsxPromise;
+  }
+
+  function fetchWithTimeout(url, ms) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), ms || 30000);
+    return fetch(url, { signal: ctrl.signal, cache: 'no-cache' })
+      .finally(() => clearTimeout(timer));
+  }
+
+  async function fetchBank() {
+    let lastErr = null;
+    for (const url of BANK_URLS) {
+      try {
+        const res = await fetchWithTimeout(url, 30000);
+        if (!res.ok) {
+          lastErr = new Error('无法读取 ' + url + '（HTTP ' + res.status + '）');
+          continue;
+        }
+        const ct = (res.headers.get('content-type') || '').toLowerCase();
+        if (ct.indexOf('text/html') >= 0) {
+          lastErr = new Error(url + ' 返回的是网页而不是 Excel 文件');
+          continue;
+        }
+        const buf = await res.arrayBuffer();
+        if (!buf.byteLength) {
+          lastErr = new Error(url + ' 是空文件（0 字节）');
+          continue;
+        }
+        return { buf, url };
+      } catch (e) {
+        lastErr = e;
+      }
+    }
+    throw lastErr || new Error('题库下载失败');
+  }
+
+  async function loadBank() {
+    const btn = $('reloadBankBtn');
+    btn.disabled = true;
+    setStatus('正在加载题库……');
+
+    try {
+      await ensureXLSX();
+      const { buf, url } = await fetchBank();
+
+      let wb;
+      try {
+        wb = XLSX.read(buf, { type: 'array' });
+      } catch (e) {
+        throw new Error('Excel 解析失败：请确认为 .xls 或 .xlsx 格式且未加密。');
+      }
+
+      const parsed = parseWorkbook(wb);
+      const questions = parsed.questions;
+      if (!questions.length) {
+        throw new Error('文件已下载，但没有解析到有效题目' + statsSummary(parsed.stats) +
+          '。请检查表头、选项列和答案列。');
+      }
+
+      state.all = questions;
+      migrateLegacy(questions);
+      state.questions = questions.slice();
+      state.current = 0;
+      state.submitted = false;
+      state.cardEls = [];
+      revalidateAnswers();
+
+      $('quizPanel').hidden = false;
+      $('resultPanel').hidden = true;
+      $('cardPanel').hidden = true;
+      updateCardToggle();
+      buildAnswerCard();
+      updateAll();
+      saveAnswers();
+
+      try { localStorage.removeItem(LEGACY_KEY); } catch (e) { /* 忽略 */ }
+      legacyAnswers = null;
+
+      setStatus('题库加载成功：' + url + ' 共 ' + questions.length + ' 道题，来自 ' +
+        wb.SheetNames.length + ' 个工作表（' + wb.SheetNames.join('、') + '）' +
+        statsSummary(parsed.stats) + '。', false);
+    } catch (err) {
+      console.error(err);
+      setStatus('题库加载失败：' + (err && err.message ? err.message : String(err)), true);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  /* ========================= 事件绑定与启动 ========================= */
+  function bindEvents() {
+    on('reloadBankBtn', loadBank);
+    on('startBtn', startQuiz);
+    on('prevBtn', () => goTo(state.current - 1));
+    on('prevBtn2', () => goTo(state.current - 1));
+    on('nextBtn', () => goTo(state.current + 1));
+    on('nextBtn2', () => goTo(state.current + 1));
+    on('submitBtn', submitQuiz);
+    on('resetBtn', resetAnswers);
+    on('toggleCardBtn', toggleCard);
+    on('reviewWrongBtn', () => { $('modeSelect').value = 'wrong'; startQuiz(); });
+    on('exportWrongBtn', exportWrongCsv);
+    document.addEventListener('keydown', onKeyDown);
+  }
+
+  loadSaved();
+  bindEvents();
+  loadBank();
+})();
 </script>
 </body>
 </html>
