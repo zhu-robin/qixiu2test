@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#2563eb">
-<meta name="description" content="汽车发动机、底盘、电气试题库在线练习：自动读取 Excel 题库，支持顺序/随机/错题练习、自动判分与错题导出。">
+<meta name="description" content="汽车发动机、底盘、电气试题库在线练习：一页多题、整页翻页、答题卡分页，自动判分与错题导出。">
 <title>汽车发动机、底盘、电气试题库 · 在线测试</title>
 <style>
   :root{
@@ -56,20 +56,25 @@
   .option .mark{flex:none;font-weight:700;min-width:1.2em;text-align:right}
   .option .mark.ok{color:var(--ok)}
   .option .mark.bad{color:var(--bad)}
-  #answerCard{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:8px;max-height:300px;overflow:auto;padding:4px}
+  #questionList{display:flex;flex-direction:column;gap:16px}
+  .qcard{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);scroll-margin-top:12px}
+  .qcard.flash{outline:3px solid var(--primary);outline-offset:2px}
+  .qhead{margin-bottom:4px}
+  .qfeedback{margin-top:12px;font-size:14px;line-height:1.8}
+  .verdict{font-weight:700}
+  .verdict.ok{color:var(--ok)}
+  .verdict.bad{color:var(--bad)}
+  .pager,.cpager{display:flex;gap:10px;align-items:center;justify-content:center;padding:12px 0}
+  .pager-info{min-width:130px;text-align:center}
+  #answerCard{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:8px;max-height:320px;overflow:auto;padding:4px}
   #answerCard button{height:40px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-size:13px}
   #answerCard button.answered{background:var(--primary-weak);border-color:#93c5fd}
-  #answerCard button.current{outline:2px solid var(--primary);outline-offset:1px}
   #answerCard button.correct{background:var(--ok-bg);border-color:var(--ok)}
   #answerCard button.wrong{background:var(--bad-bg);border-color:var(--bad)}
   .progress{height:8px;background:var(--border);border-radius:999px;overflow:hidden}
   .progress>div{height:100%;width:0;background:var(--primary);transition:width .15s}
   .status{padding:12px 14px;border-radius:10px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;margin-top:12px;line-height:1.7;overflow-wrap:anywhere}
   .status.error{background:#fef2f2;border-color:#fecaca;color:#991b1b}
-  .verdict{font-weight:700}
-  .verdict.ok{color:var(--ok)}
-  .verdict.bad{color:var(--bad)}
-  #feedback{margin-top:12px;line-height:1.8;font-size:15px}
   footer{text-align:center;color:var(--muted);font-size:12px;padding:8px 0 24px}
   .dlg{border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--text);max-width:420px;width:calc(100% - 32px);padding:20px;box-shadow:var(--shadow)}
   .dlg::backdrop{background:rgba(15,23,42,.45)}
@@ -80,7 +85,7 @@
     .status.error{background:#3a1618;border-color:#7f1d1d;color:#fecaca}
   }
   @media (max-width:600px){
-    main{padding:10px}.card{padding:12px}.question-title{font-size:16px}
+    main{padding:10px}.card,.qcard{padding:12px}.question-title{font-size:16px}
     .toolbar .btn{padding:8px 10px}#answerCard{grid-template-columns:repeat(auto-fill,minmax(42px,1fr))}
   }
 </style>
@@ -88,7 +93,7 @@
 <body>
 <header>
   <h1>汽车发动机、底盘、电气试题库 · 在线测试</h1>
-  <p>自动读取仓库中的 Excel 题库，支持顺序练习、随机练习、错题复习、在线判分和导出错题。答题记录仅保存在本机浏览器。</p>
+  <p>一页多题、整页翻页，答题卡分页快速跳题；自动判分、错题复习与导出。答题记录仅保存在本机浏览器。</p>
 </header>
 <main>
   <section class="card" aria-labelledby="bankTitle">
@@ -111,8 +116,12 @@
           <option value="wrong">只练错题</option>
           <option value="unanswered">只练未答题</option>
         </select>
-        <button class="btn" type="button" id="prevBtn">上一题</button>
-        <button class="btn" type="button" id="nextBtn">下一题</button>
+        <select id="pageSizeSelect" class="btn" aria-label="每页题数">
+          <option value="5">每页 5 题</option>
+          <option value="10" selected>每页 10 题</option>
+          <option value="20">每页 20 题</option>
+          <option value="50">每页 50 题</option>
+        </select>
         <button class="btn" type="button" id="submitBtn">提交判分</button>
         <button class="btn" type="button" id="resetBtn">清空答案</button>
         <button class="btn" type="button" id="toggleCardBtn" aria-expanded="false" aria-controls="cardPanel">答题卡</button>
@@ -129,28 +138,32 @@
         <span class="spacer"></span>
         <span class="small" id="progressText"></span>
       </div>
+      <div class="pager" style="padding-bottom:0">
+        <button class="btn" type="button" data-nav="prev">上一页</button>
+        <span class="small pager-info"></span>
+        <button class="btn primary" type="button" data-nav="next">下一页</button>
+      </div>
     </section>
 
-    <section class="card" id="questionCard" aria-label="题目">
-      <div class="flex">
-        <span class="tag" id="qTypeTag">题型</span>
-        <span class="tag" id="qIdTag">题号</span>
-        <span class="small" id="qKnowledge"></span>
-      </div>
-      <div class="question-title" id="qTitle"></div>
-      <div id="optionsBox" role="radiogroup" aria-labelledby="qTitle"></div>
-      <div class="flex" style="margin-top:16px">
-        <button class="btn" type="button" id="prevBtn2">上一题</button>
-        <button class="btn primary" type="button" id="nextBtn2">下一题</button>
-        <span class="spacer"></span>
-        <span class="small">答案自动保存在本机 · 键盘 ← → 翻页，1-6 / A-F 选项</span>
-      </div>
-      <div id="feedback" aria-live="polite"></div>
-    </section>
+    <div id="questionList"></div>
+
+    <div class="pager">
+      <button class="btn" type="button" data-nav="prev">上一页</button>
+      <span class="small pager-info"></span>
+      <button class="btn primary" type="button" data-nav="next">下一页</button>
+    </div>
 
     <section class="card" id="cardPanel" hidden aria-label="答题卡">
-      <h3>答题卡</h3>
-      <div id="answerCard"></div>
+      <div class="flex">
+        <h3 style="margin:0">答题卡</h3>
+        <span class="spacer"></span>
+        <span class="small" id="cardRange"></span>
+      </div>
+      <div id="answerCard" style="margin-top:12px"></div>
+      <div class="cpager">
+        <button class="btn" type="button" id="cardPrev">上一页</button>
+        <button class="btn" type="button" id="cardNext">下一页</button>
+      </div>
     </section>
 
     <section class="card" id="resultPanel" hidden aria-label="测试结果">
@@ -192,6 +205,7 @@
   ];
   const STORAGE_KEY = 'autoQuizAnswers_v3';
   const LEGACY_KEY = 'autoQuizAnswers_v2';
+  const CARD_SIZE = 50;          // 答题卡每页题号数量
 
   const LETTER = i => String.fromCharCode(65 + i);
 
@@ -201,10 +215,11 @@
     questions: [],    // 当前练习的题目
     answers: {},      // id -> 选项下标数组
     keys: {},         // id -> 答案排序后字符串（判题缓存，避免反复排序）
-    current: 0,
+    page: 0,          // 当前题目页（0 开始）
+    pageSize: 10,     // 每页题目数
+    cardPage: 0,      // 答题卡当前页
     submitted: false,
-    cardEls: [],      // 答题卡按钮
-    optionEls: []     // 当前题的选项 DOM
+    cardEls: []       // 当前答题卡页的按钮
   };
   let legacyAnswers = null;   // v2 旧记录，用于迁移
   let xlsxPromise = null;
@@ -238,6 +253,12 @@
       const j = Math.floor(Math.random() * (i + 1));
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
+  }
+  function pageCount() {
+    return Math.max(1, Math.ceil(state.questions.length / state.pageSize));
+  }
+  function cardPageCount() {
+    return Math.max(1, Math.ceil(state.questions.length / CARD_SIZE));
   }
 
   /* ========================= 答案解析 ========================= */
@@ -516,56 +537,60 @@
     return k === q.rightKey ? 1 : -1;
   }
 
-  /* ========================= 渲染 ========================= */
-  function syncNav() {
-    const len = state.questions.length;
-    const atStart = len === 0 || state.current <= 0;
-    const atEnd = len === 0 || state.current >= len - 1;
-    ['prevBtn', 'prevBtn2'].forEach(id => { const el = $(id); if (el) el.disabled = atStart; });
-    ['nextBtn', 'nextBtn2'].forEach(id => { const el = $(id); if (el) el.disabled = atEnd; });
-  }
+  /* ========================= 题目渲染 ========================= */
+  function buildQuestion(q, idx) {
+    const art = document.createElement('article');
+    art.className = 'qcard';
+    art.dataset.idx = String(idx);
 
-  function renderQuestion() {
-    const q = state.questions[state.current];
-    const titleEl = $('qTitle');
-    const box = $('optionsBox');
-    const fb = $('feedback');
+    const head = document.createElement('div');
+    head.className = 'flex qhead';
 
-    if (!q) {
-      titleEl.textContent = '当前没有可显示的题目，请先加载题库。';
-      box.innerHTML = '';
-      fb.textContent = '';
-      $('qTypeTag').textContent = '题型';
-      $('qTypeTag').className = 'tag';
-      $('qIdTag').textContent = '—';
-      $('qKnowledge').textContent = '';
-      state.optionEls = [];
-      return;
+    const typeTag = document.createElement('span');
+    typeTag.className = 'tag' + (q.isJudge ? ' judge' : q.isMultiple ? ' multi' : '');
+    typeTag.textContent = q.isJudge ? '判断题' : q.isMultiple ? '多选题' : '单选题';
+
+    const idTag = document.createElement('span');
+    idTag.className = 'tag';
+    idTag.textContent = q.code || '第 ' + (idx + 1) + ' 题';
+
+    head.append(typeTag, idTag);
+
+    if (q.knowledge) {
+      const k = document.createElement('span');
+      k.className = 'small';
+      k.textContent = '知识点：' + q.knowledge;
+      head.appendChild(k);
     }
 
-    $('qTypeTag').textContent = q.isJudge ? '判断题' : q.isMultiple ? '多选题' : '单选题';
-    $('qTypeTag').className = 'tag' + (q.isJudge ? ' judge' : q.isMultiple ? ' multi' : '');
-    $('qIdTag').textContent = q.code || '第 ' + (state.current + 1) + ' 题';
-    $('qKnowledge').textContent = q.knowledge ? '知识点：' + q.knowledge : '';
-    titleEl.textContent = q.title;
+    const titleId = 'qt-' + idx;
+    const title = document.createElement('div');
+    title.className = 'question-title';
+    title.id = titleId;
+    title.textContent = q.title;
 
+    const box = document.createElement('div');
+    box.className = 'options';
+    box.setAttribute('role', q.isMultiple ? 'group' : 'radiogroup');
+    box.setAttribute('aria-labelledby', titleId);
+
+    const feedback = document.createElement('div');
+    feedback.className = 'qfeedback';
+
+    const item = { q, idx, optionEls: [], feedback };
     const ans = state.answers[q.id] || [];
-    const multi = q.isMultiple;
-    box.setAttribute('role', multi ? 'group' : 'radiogroup');
-    box.innerHTML = '';
-    state.optionEls = [];
 
     q.options.forEach((opt, i) => {
       const label = document.createElement('label');
       label.className = 'option';
 
       const input = document.createElement('input');
-      input.type = multi ? 'checkbox' : 'radio';
-      input.name = 'answer';
+      input.type = q.isMultiple ? 'checkbox' : 'radio';
+      input.name = 'answer-' + idx;
       input.value = String(i);
       input.checked = ans.indexOf(i) >= 0;
       input.disabled = state.submitted;
-      input.addEventListener('change', () => onPick(q, i, input.checked));
+      input.addEventListener('change', () => onPick(item, i, input.checked));
 
       const txt = document.createElement('span');
       txt.className = 'txt';
@@ -576,46 +601,64 @@
 
       label.append(input, txt, mark);
       box.appendChild(label);
-      state.optionEls.push({ label, mark });
+      item.optionEls.push({ label, mark });
     });
 
-    paintOptions(q, ans);
-    paintFeedback(q);
+    art.append(head, title, box, feedback);
+    paintOptions(item, ans);
+    paintFeedback(item);
+    return art;
   }
 
-  function paintOptions(q, ans) {
-    state.optionEls.forEach((item, i) => {
+  function paintOptions(item, ans) {
+    item.optionEls.forEach((o, i) => {
       const sel = ans.indexOf(i) >= 0;
-      const right = q.right.indexOf(i) >= 0;
-      item.label.classList.toggle('selected', sel);
-      item.label.classList.remove('correct', 'wrong');
-      item.mark.className = 'mark';
-      item.mark.textContent = '';
+      const right = item.q.right.indexOf(i) >= 0;
+      o.label.classList.toggle('selected', sel);
+      o.label.classList.remove('correct', 'wrong');
+      o.mark.className = 'mark';
+      o.mark.textContent = '';
       if (!state.submitted) return;
       if (right) {
-        item.label.classList.add('correct');
-        item.mark.classList.add('ok');
-        item.mark.textContent = '✓';
+        o.label.classList.add('correct');
+        o.mark.classList.add('ok');
+        o.mark.textContent = '✓';
       } else if (sel) {
-        item.label.classList.add('wrong');
-        item.mark.classList.add('bad');
-        item.mark.textContent = '✗';
+        o.label.classList.add('wrong');
+        o.mark.classList.add('bad');
+        o.mark.textContent = '✗';
       }
     });
   }
 
-  function paintFeedback(q) {
-    const fb = $('feedback');
+  function paintFeedback(item) {
+    const fb = item.feedback;
     fb.innerHTML = '';
     if (!state.submitted) return;
-    const st = statusOf(q);
+    const st = statusOf(item.q);
     const line = document.createElement('div');
     line.className = 'verdict ' + (st === 1 ? 'ok' : st === -1 ? 'bad' : '');
     line.textContent = st === 1 ? '回答正确' : st === -1 ? '回答错误' : '未作答';
     const key = document.createElement('div');
     key.className = 'small';
-    key.textContent = '正确答案：' + q.right.map(LETTER).join('、');
+    key.textContent = '正确答案：' + item.q.right.map(LETTER).join('、');
     fb.append(line, key);
+  }
+
+  function renderPage() {
+    const list = $('questionList');
+    list.innerHTML = '';
+    const len = state.questions.length;
+    if (!len) {
+      const p = document.createElement('p');
+      p.className = 'small';
+      p.textContent = '当前没有可显示的题目，请先加载题库。';
+      list.appendChild(p);
+      return;
+    }
+    const start = state.page * state.pageSize;
+    const end = Math.min(start + state.pageSize, len);
+    for (let i = start; i < end; i++) list.appendChild(buildQuestion(state.questions[i], i));
   }
 
   function updateStats() {
@@ -633,74 +676,143 @@
     $('correctCount').textContent = correct;
     $('wrongCount').textContent = wrong;
     $('accuracy').textContent = answered ? Math.round(correct / answered * 100) + '%' : '0%';
-    $('progressText').textContent = total ? '当前第 ' + (state.current + 1) + ' 题 / 共 ' + total + ' 题' : '';
+
+    if (total) {
+      const start = state.page * state.pageSize + 1;
+      const end = Math.min((state.page + 1) * state.pageSize, total);
+      $('progressText').textContent = '第 ' + (state.page + 1) + '/' + pageCount() +
+        ' 页（第 ' + start + '-' + end + ' 题）';
+    } else {
+      $('progressText').textContent = '';
+    }
+
     const pct = total ? Math.round(answered / total * 100) : 0;
     $('progressBar').style.width = pct + '%';
     $('progressWrap').setAttribute('aria-valuenow', String(pct));
     $('progressWrap').setAttribute('aria-valuetext', '已答 ' + answered + ' / ' + total + ' 题');
   }
 
+  function updatePagers() {
+    const pc = pageCount();
+    const nodes = document.querySelectorAll('.pager');
+    for (let i = 0; i < nodes.length; i++) {
+      const prev = nodes[i].querySelector('[data-nav="prev"]');
+      const next = nodes[i].querySelector('[data-nav="next"]');
+      const info = nodes[i].querySelector('.pager-info');
+      if (!prev || !next || !info) continue;
+      prev.disabled = state.page <= 0;
+      next.disabled = state.page >= pc - 1;
+      info.textContent = '第 ' + (state.page + 1) + ' / ' + pc + ' 页';
+    }
+  }
+
+  function goPage(delta) {
+    const target = Math.min(Math.max(state.page + delta, 0), pageCount() - 1);
+    if (target === state.page) return;
+    state.page = target;
+    syncCardPage();
+    renderPage();
+    updateStats();
+    updatePagers();
+    const list = $('questionList');
+    if (list) list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /* ========================= 答题卡 ========================= */
+  function syncCardPage() {
+    const target = Math.floor((state.page * state.pageSize) / CARD_SIZE);
+    const clamped = Math.min(Math.max(target, 0), cardPageCount() - 1);
+    if (clamped !== state.cardPage) {
+      state.cardPage = clamped;
+      renderCardPage();
+    }
+  }
+
+  function renderCardPage() {
+    const box = $('answerCard');
+    box.innerHTML = '';
+    state.cardEls = [];
+    const len = state.questions.length;
+    if (len) {
+      const start = state.cardPage * CARD_SIZE;
+      const end = Math.min(start + CARD_SIZE, len);
+      const frag = document.createDocumentFragment();
+      for (let i = start; i < end; i++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = String(i + 1);
+        btn.title = '跳到第 ' + (i + 1) + ' 题';
+        btn.addEventListener('click', () => jumpTo(i));
+        frag.appendChild(btn);
+        state.cardEls.push(btn);
+      }
+      box.appendChild(frag);
+    }
+    paintCardPage();
+    updateCardPager();
+  }
+
+  function paintCardPage() {
+    const base = state.cardPage * CARD_SIZE;
+    for (let k = 0; k < state.cardEls.length; k++) paintCardButton(base + k);
+  }
+
   function paintCardButton(idx) {
-    const btn = state.cardEls[idx];
+    const btn = state.cardEls[idx - state.cardPage * CARD_SIZE];
     const q = state.questions[idx];
     if (!btn || !q) return;
     const st = statusOf(q);
     const cls = [];
     if (st !== 0) cls.push('answered');
-    if (idx === state.current) cls.push('current');
     if (state.submitted && st === 1) cls.push('correct');
     if (state.submitted && st === -1) cls.push('wrong');
     btn.className = cls.join(' ');
-    if (idx === state.current) btn.setAttribute('aria-current', 'true');
-    else btn.removeAttribute('aria-current');
   }
 
-  function buildAnswerCard() {
-    const box = $('answerCard');
-    box.innerHTML = '';
-    state.cardEls = [];
-    const frag = document.createDocumentFragment();
-    state.questions.forEach((q, idx) => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.textContent = String(idx + 1);
-      btn.title = '第 ' + (idx + 1) + ' 题';
-      btn.addEventListener('click', () => goTo(idx));
-      frag.appendChild(btn);
-      state.cardEls.push(btn);
-    });
-    box.appendChild(frag);
+  function updateCardPager() {
+    const total = state.questions.length;
+    const start = state.cardPage * CARD_SIZE + 1;
+    const end = Math.min((state.cardPage + 1) * CARD_SIZE, total);
+    $('cardRange').textContent = total ? '第 ' + start + '-' + end + ' 题 / 共 ' + total + ' 题' : '';
+    $('cardPrev').disabled = state.cardPage <= 0;
+    $('cardNext').disabled = state.cardPage >= cardPageCount() - 1;
   }
 
-  function paintCardAll() {
-    if (state.cardEls.length !== state.questions.length) buildAnswerCard();
-    for (let i = 0; i < state.cardEls.length; i++) paintCardButton(i);
+  function goCardPage(delta) {
+    const target = Math.min(Math.max(state.cardPage + delta, 0), cardPageCount() - 1);
+    if (target === state.cardPage) return;
+    state.cardPage = target;
+    renderCardPage();
   }
 
+  function jumpTo(idx) {
+    const target = Math.floor(idx / state.pageSize);
+    if (target !== state.page) {
+      state.page = target;
+      renderPage();
+      updateStats();
+      updatePagers();
+    }
+    const el = document.querySelector('.qcard[data-idx="' + idx + '"]');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      el.classList.add('flash');
+      setTimeout(() => el.classList.remove('flash'), 1500);
+    }
+  }
+
+  /* ========================= 整体刷新 ========================= */
   function updateAll() {
-    renderQuestion();
+    renderPage();
     updateStats();
-    syncNav();
-    paintCardAll();
+    updatePagers();
+    renderCardPage();
   }
 
   /* ========================= 交互 ========================= */
-  function goTo(idx) {
-    const len = state.questions.length;
-    if (!len) return;
-    const old = state.current;
-    const next = Math.min(Math.max(idx, 0), len - 1);
-    if (next === old) return;
-    state.current = next;
-    renderQuestion();
-    updateStats();
-    syncNav();
-    paintCardButton(old);
-    paintCardButton(next);
-  }
-
-  function onPick(q, i, checked) {
+  function onPick(item, i, checked) {
     if (state.submitted) return;
+    const q = item.q;
     let ans = (state.answers[q.id] || []).slice();
     if (q.isMultiple) {
       if (checked) { if (ans.indexOf(i) < 0) ans.push(i); }
@@ -717,9 +829,10 @@
       delete state.keys[q.id];
     }
     saveAnswers();
-    paintOptions(q, state.answers[q.id] || []);
+    paintOptions(item, state.answers[q.id] || []);
+    paintFeedback(item);
     updateStats();
-    paintCardButton(state.current);
+    paintCardButton(item.idx);
   }
 
   function startQuiz() {
@@ -740,21 +853,20 @@
     }
 
     state.questions = arr;
-    state.current = 0;
+    state.page = 0;
+    state.cardPage = 0;
     state.submitted = false;
-    state.cardEls = [];
     $('resultPanel').hidden = true;
     $('cardPanel').hidden = true;
     updateCardToggle();
-    buildAnswerCard();
     updateAll();
   }
 
   function submitQuiz() {
     if (!state.questions.length) return;
     state.submitted = true;
-    renderQuestion();
-    paintCardAll();
+    renderPage();
+    paintCardPage();
     showResult();
   }
 
@@ -794,7 +906,10 @@
     const panel = $('cardPanel');
     panel.hidden = !panel.hidden;
     updateCardToggle();
-    if (!panel.hidden) paintCardAll();
+    if (!panel.hidden) {
+      syncCardPage();
+      renderCardPage();
+    }
   }
 
   function updateCardToggle() {
@@ -803,28 +918,31 @@
     if (btn && panel) btn.setAttribute('aria-expanded', String(!panel.hidden));
   }
 
+  function onPageSizeChange() {
+    const size = Number($('pageSizeSelect').value) || 10;
+    const first = state.page * state.pageSize;
+    state.pageSize = size;
+    state.page = Math.min(Math.floor(first / size), pageCount() - 1);
+    renderPage();
+    updateStats();
+    updatePagers();
+    syncCardPage();
+  }
+
   function onKeyDown(e) {
     const tag = ((e.target && e.target.tagName) || '').toLowerCase();
     if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
 
-    if (e.key === 'ArrowLeft') { goTo(state.current - 1); }
-    else if (e.key === 'ArrowRight') { goTo(state.current + 1); }
-    else if (!state.submitted && /^[1-6]$/.test(e.key)) {
-      pickByIndex(Number(e.key) - 1);
-    } else if (!state.submitted && /^[a-fA-F]$/.test(e.key)) {
-      pickByIndex(e.key.toUpperCase().charCodeAt(0) - 65);
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault();
+      goPage(-1);
+    } else if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+      e.preventDefault();
+      goPage(1);
     } else if (e.key === 'Enter' && tag !== 'button' && !state.submitted) {
       submitQuiz();
     }
-  }
-
-  function pickByIndex(i) {
-    const q = state.questions[state.current];
-    if (!q || i < 0 || i >= q.options.length) return;
-    const cur = state.answers[q.id] || [];
-    if (q.isMultiple && cur.indexOf(i) >= 0) onPick(q, i, false);
-    else onPick(q, i, true);
   }
 
   /* ========================= 导出 ========================= */
@@ -986,16 +1104,16 @@
       state.all = questions;
       migrateLegacy(questions);
       state.questions = questions.slice();
-      state.current = 0;
+      state.pageSize = Number($('pageSizeSelect').value) || 10;
+      state.page = 0;
+      state.cardPage = 0;
       state.submitted = false;
-      state.cardEls = [];
       revalidateAnswers();
 
       $('quizPanel').hidden = false;
       $('resultPanel').hidden = true;
       $('cardPanel').hidden = true;
       updateCardToggle();
-      buildAnswerCard();
       updateAll();
       saveAnswers();
 
@@ -1017,15 +1135,23 @@
   function bindEvents() {
     on('reloadBankBtn', loadBank);
     on('startBtn', startQuiz);
-    on('prevBtn', () => goTo(state.current - 1));
-    on('prevBtn2', () => goTo(state.current - 1));
-    on('nextBtn', () => goTo(state.current + 1));
-    on('nextBtn2', () => goTo(state.current + 1));
     on('submitBtn', submitQuiz);
     on('resetBtn', resetAnswers);
     on('toggleCardBtn', toggleCard);
     on('reviewWrongBtn', () => { $('modeSelect').value = 'wrong'; startQuiz(); });
     on('exportWrongBtn', exportWrongCsv);
+    on('cardPrev', () => goCardPage(-1));
+    on('cardNext', () => goCardPage(1));
+
+    const navBtns = document.querySelectorAll('.pager [data-nav]');
+    for (let i = 0; i < navBtns.length; i++) {
+      navBtns[i].addEventListener('click', () => {
+        goPage(navBtns[i].getAttribute('data-nav') === 'prev' ? -1 : 1);
+      });
+    }
+
+    const size = $('pageSizeSelect');
+    if (size) size.addEventListener('change', onPageSizeChange);
     document.addEventListener('keydown', onKeyDown);
   }
 
