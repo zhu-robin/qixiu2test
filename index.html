@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#2563eb">
-<meta name="description" content="汽车发动机、底盘、电气试题库在线练习：一页多题、整页翻页、答题卡分页，自动判分与错题导出。">
+<meta name="description" content="汽车发动机、底盘、电气试题库在线练习：一页多题、整页翻页并可直接跳到指定页，答题卡错题即时标红，自动判分与错题导出。">
 <title>汽车发动机、底盘、电气试题库 · 在线测试</title>
 <style>
   :root{
@@ -64,13 +64,24 @@
   .verdict{font-weight:700}
   .verdict.ok{color:var(--ok)}
   .verdict.bad{color:var(--bad)}
-  .pager,.cpager{display:flex;gap:10px;align-items:center;justify-content:center;padding:12px 0}
-  .pager-info{min-width:130px;text-align:center}
+  .pager,.cpager{display:flex;gap:10px;align-items:center;justify-content:center;padding:12px 0;flex-wrap:wrap}
+  .pager-info{min-width:130px;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+  .page-input{width:4.4em;min-height:34px;padding:4px 6px;border:1px solid var(--border);border-radius:9px;background:var(--card);color:var(--text);font:inherit;font-size:14px;text-align:center;font-variant-numeric:tabular-nums}
+  .page-input:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+  .btn.jump{min-height:34px;padding:6px 12px}
+  #toggleCardBtn{display:inline-flex;align-items:center;gap:6px}
+  .badge{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--bad);color:#fff;font-size:12px;font-weight:700;line-height:1}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:10px 0 0;padding:0;list-style:none}
+  .legend span{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:13px}
+  .legend i{display:inline-block;width:14px;height:14px;border-radius:4px;border:1px solid var(--border);vertical-align:-2px}
+  .legend .sw-neutral{background:var(--card)}
+  .legend .sw-correct{background:var(--ok-bg);border-color:var(--ok)}
+  .legend .sw-wrong{background:var(--bad-bg);border-color:var(--bad)}
   #answerCard{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:8px;max-height:320px;overflow:auto;padding:4px}
   #answerCard button{height:40px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-size:13px}
   #answerCard button.answered{background:var(--primary-weak);border-color:#93c5fd}
-  #answerCard button.correct{background:var(--ok-bg);border-color:var(--ok)}
-  #answerCard button.wrong{background:var(--bad-bg);border-color:var(--bad)}
+  #answerCard button.correct{background:var(--ok-bg);border-color:var(--ok);color:var(--ok);font-weight:700}
+  #answerCard button.wrong{background:var(--bad-bg);border-color:var(--bad);color:var(--bad);font-weight:700}
   .progress{height:8px;background:var(--border);border-radius:999px;overflow:hidden}
   .progress>div{height:100%;width:0;background:var(--primary);transition:width .15s}
   .status{padding:12px 14px;border-radius:10px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;margin-top:12px;line-height:1.7;overflow-wrap:anywhere}
@@ -81,19 +92,24 @@
   @media (prefers-color-scheme: dark){
     .tag.multi{background:#3f2d0c;color:#fcd34d}
     .tag.judge{background:#0f3d2a;color:#86efac}
+    .badge{background:var(--bad);color:#111827}
     .status{background:#12203a;border-color:#1e3a8a;color:#bfdbfe}
     .status.error{background:#3a1618;border-color:#7f1d1d;color:#fecaca}
   }
   @media (max-width:600px){
     main{padding:10px}.card,.qcard{padding:12px}.question-title{font-size:16px}
     .toolbar .btn{padding:8px 10px}#answerCard{grid-template-columns:repeat(auto-fill,minmax(42px,1fr))}
+    .pager,.cpager{gap:6px;padding:10px 0}
+    .pager .btn,.cpager .btn{padding:8px 10px;font-size:13px}
+    .pager-info{min-width:0;gap:4px;font-size:13px}
+    .page-input{width:3.8em;min-height:32px;font-size:13px}
   }
 </style>
 </head>
 <body>
 <header>
   <h1>汽车发动机、底盘、电气试题库 · 在线测试</h1>
-  <p>一页多题、整页翻页，答题卡分页快速跳题；自动判分、错题复习与导出。答题记录仅保存在本机浏览器。</p>
+  <p>一页多题、整页翻页并可直接跳到指定页；答题卡里答错当场标红，随时知道哪几道该复习。答题记录仅保存在本机浏览器。</p>
 </header>
 <main>
   <section class="card" aria-labelledby="bankTitle">
@@ -124,7 +140,7 @@
         </select>
         <button class="btn" type="button" id="submitBtn">提交判分</button>
         <button class="btn" type="button" id="resetBtn">清空答案</button>
-        <button class="btn" type="button" id="toggleCardBtn" aria-expanded="false" aria-controls="cardPanel">答题卡</button>
+        <button class="btn" type="button" id="toggleCardBtn" aria-expanded="false" aria-controls="cardPanel">答题卡<span class="badge" id="wrongBadge" hidden title="当前错题数">0</span></button>
       </div>
       <div class="progress" id="progressWrap" role="progressbar" aria-label="答题进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="margin-top:12px">
         <div id="progressBar"></div>
@@ -140,7 +156,13 @@
       </div>
       <div class="pager" style="padding-bottom:0">
         <button class="btn" type="button" data-nav="prev">上一页</button>
-        <span class="small pager-info"></span>
+        <span class="pager-info">
+          第
+          <input class="page-input" type="number" min="1" step="1" inputmode="numeric" data-jump-input
+                 aria-label="输入页码，回车或点“跳转”即可翻到指定页" title="输入页码后按回车，或点“跳转”">
+          / <span data-page-total>1</span> 页
+        </span>
+        <button class="btn jump" type="button" data-jump-btn>跳转</button>
         <button class="btn primary" type="button" data-nav="next">下一页</button>
       </div>
     </section>
@@ -149,7 +171,13 @@
 
     <div class="pager">
       <button class="btn" type="button" data-nav="prev">上一页</button>
-      <span class="small pager-info"></span>
+      <span class="pager-info">
+        第
+        <input class="page-input" type="number" min="1" step="1" inputmode="numeric" data-jump-input
+               aria-label="输入页码，回车或点“跳转”即可翻到指定页" title="输入页码后按回车，或点“跳转”">
+        / <span data-page-total>1</span> 页
+      </span>
+      <button class="btn jump" type="button" data-jump-btn>跳转</button>
       <button class="btn primary" type="button" data-nav="next">下一页</button>
     </div>
 
@@ -160,8 +188,20 @@
         <span class="small" id="cardRange"></span>
       </div>
       <div id="answerCard" style="margin-top:12px"></div>
+      <ul class="legend" aria-label="答题卡颜色说明">
+        <li><span><i class="sw-neutral"></i>未作答</span></li>
+        <li><span><i class="sw-correct"></i>答对</span></li>
+        <li><span><i class="sw-wrong"></i>错题（已标红）</span></li>
+      </ul>
       <div class="cpager">
         <button class="btn" type="button" id="cardPrev">上一页</button>
+        <span class="pager-info">
+          第
+          <input class="page-input" type="number" min="1" step="1" inputmode="numeric" data-card-jump-input
+                 aria-label="输入答题卡页码，回车或点“跳转”" title="输入页码后按回车，或点“跳转”">
+          / <span data-card-page-total>1</span> 页
+        </span>
+        <button class="btn jump" type="button" id="cardJumpBtn" data-jump-btn>跳转</button>
         <button class="btn" type="button" id="cardNext">下一页</button>
       </div>
     </section>
@@ -677,6 +717,14 @@
     $('wrongCount').textContent = wrong;
     $('accuracy').textContent = answered ? Math.round(correct / answered * 100) + '%' : '0%';
 
+    // 答题卡按钮上的错题角标，方便不开答题卡也知道错了几道
+    const badge = $('wrongBadge');
+    if (badge) {
+      badge.textContent = String(wrong);
+      badge.hidden = wrong === 0;
+      badge.title = '当前错题 ' + wrong + ' 道';
+    }
+
     if (total) {
       const start = state.page * state.pageSize + 1;
       const end = Math.min((state.page + 1) * state.pageSize, total);
@@ -698,24 +746,51 @@
     for (let i = 0; i < nodes.length; i++) {
       const prev = nodes[i].querySelector('[data-nav="prev"]');
       const next = nodes[i].querySelector('[data-nav="next"]');
-      const info = nodes[i].querySelector('.pager-info');
-      if (!prev || !next || !info) continue;
-      prev.disabled = state.page <= 0;
-      next.disabled = state.page >= pc - 1;
-      info.textContent = '第 ' + (state.page + 1) + ' / ' + pc + ' 页';
+      const input = nodes[i].querySelector('[data-jump-input]');
+      const totalEl = nodes[i].querySelector('[data-page-total]');
+      if (prev) prev.disabled = state.page <= 0;
+      if (next) next.disabled = state.page >= pc - 1;
+      if (totalEl) totalEl.textContent = String(pc);
+      if (input) {
+        input.max = String(pc);
+        // 正在输入时不要抢走用户已敲的页码
+        if (document.activeElement !== input) input.value = String(state.page + 1);
+      }
     }
   }
 
-  function goPage(delta) {
-    const target = Math.min(Math.max(state.page + delta, 0), pageCount() - 1);
-    if (target === state.page) return;
-    state.page = target;
+  /* 翻到指定页：0 开始的页码；越界自动夹紧在这一页范围内 */
+  function goPageTo(target) {
+    const pc = pageCount();
+    const t = Math.min(Math.max(Math.trunc(target) || 0, 0), pc - 1);
+    const changed = t !== state.page;
+    state.page = t;
     syncCardPage();
     renderPage();
     updateStats();
     updatePagers();
-    const list = $('questionList');
-    if (list) list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (changed) {
+      const list = $('questionList');
+      if (list) list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  function goPage(delta) {
+    goPageTo(state.page + delta);
+  }
+
+  function readPageInput(input) {
+    const n = parseInt(String((input && input.value) || '').trim(), 10);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  /* 输入框里填页码 → 翻到那一页（回车 / “跳转”按钮都走这里） */
+  function jumpToTypedPage(input) {
+    if (!state.questions.length) { if (input) input.value = ''; return; }
+    const n = readPageInput(input);
+    if (input) input.blur();          // 先失焦，回来时输入框才会回显夹紧后的真实页码
+    if (n === null) { updatePagers(); return; }
+    goPageTo(n - 1);
   }
 
   /* ========================= 答题卡 ========================= */
@@ -762,11 +837,18 @@
     const q = state.questions[idx];
     if (!btn || !q) return;
     const st = statusOf(q);
-    const cls = [];
-    if (st !== 0) cls.push('answered');
-    if (state.submitted && st === 1) cls.push('correct');
-    if (state.submitted && st === -1) cls.push('wrong');
-    btn.className = cls.join(' ');
+    btn.classList.remove('answered', 'correct', 'wrong');
+    if (st === 1) {
+      btn.classList.add('answered', 'correct');
+      btn.title = '第 ' + (idx + 1) + ' 题 · 答对，点击跳转';
+    } else if (st === -1) {
+      // 错题在答题卡上直接标红：不用等“提交判分”就能看到哪几道错了
+      btn.classList.add('wrong');
+      btn.title = '第 ' + (idx + 1) + ' 题 · 答错，点击跳转';
+    } else {
+      btn.title = '第 ' + (idx + 1) + ' 题 · 未作答，点击跳转';
+    }
+    btn.setAttribute('aria-label', btn.title);
   }
 
   function updateCardPager() {
@@ -776,6 +858,28 @@
     $('cardRange').textContent = total ? '第 ' + start + '-' + end + ' 题 / 共 ' + total + ' 题' : '';
     $('cardPrev').disabled = state.cardPage <= 0;
     $('cardNext').disabled = state.cardPage >= cardPageCount() - 1;
+    const input = document.querySelector('[data-card-jump-input]');
+    const totalEl = document.querySelector('[data-card-page-total]');
+    if (totalEl) totalEl.textContent = String(cardPageCount());
+    if (input) {
+      input.max = String(cardPageCount());
+      if (document.activeElement !== input) input.value = String(state.cardPage + 1);
+    }
+  }
+
+  /* 答题卡也能直接跳到指定页 */
+  function jumpToTypedCardPage(input) {
+    if (!state.questions.length) { if (input) input.value = ''; return; }
+    const n = readPageInput(input);
+    if (input) input.blur();
+    if (n === null) { updateCardPager(); return; }
+    const t = Math.min(Math.max(n, 1), cardPageCount()) - 1;
+    if (t !== state.cardPage) {
+      state.cardPage = t;
+      renderCardPage();
+    } else {
+      updateCardPager();
+    }
   }
 
   function goCardPage(delta) {
@@ -789,6 +893,7 @@
     const target = Math.floor(idx / state.pageSize);
     if (target !== state.page) {
       state.page = target;
+      syncCardPage();
       renderPage();
       updateStats();
       updatePagers();
@@ -1149,6 +1254,30 @@
         goPage(navBtns[i].getAttribute('data-nav') === 'prev' ? -1 : 1);
       });
     }
+
+    // 指定页跳转：上下两个分页条各有一个输入框
+    const pagers = document.querySelectorAll('.pager');
+    for (let i = 0; i < pagers.length; i++) {
+      const input = pagers[i].querySelector('[data-jump-input]');
+      const btn = pagers[i].querySelector('[data-jump-btn]');
+      if (input) {
+        input.addEventListener('focus', () => input.select());
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Enter') { e.preventDefault(); jumpToTypedPage(input); }
+        });
+      }
+      if (btn) btn.addEventListener('click', () => jumpToTypedPage(input));
+    }
+
+    // 答题卡跳页
+    const cardInput = document.querySelector('[data-card-jump-input]');
+    if (cardInput) {
+      cardInput.addEventListener('focus', () => cardInput.select());
+      cardInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); jumpToTypedCardPage(cardInput); }
+      });
+    }
+    on('cardJumpBtn', () => jumpToTypedCardPage(document.querySelector('[data-card-jump-input]')));
 
     const size = $('pageSizeSelect');
     if (size) size.addEventListener('change', onPageSizeChange);
